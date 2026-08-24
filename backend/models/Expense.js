@@ -1,0 +1,54 @@
+const mongoose = require("mongoose");
+
+const expenseSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    category: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    amount: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+
+    paymentMethod: {
+      type: String,
+      enum: [
+        "Cash",
+        "UPI",
+        "Bank Transfer",
+        "Cheque",
+        "Other",
+      ],
+      default: "Cash",
+    },
+
+    description: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    festivalYear: {
+      type: Number,
+      required: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+module.exports = mongoose.model(
+  "Expense",
+  expenseSchema
+);

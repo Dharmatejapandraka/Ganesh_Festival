@@ -1,0 +1,1354 @@
+/* =====================================================
+   DJ SETS PAGE
+===================================================== */
+
+.dj-page {
+  min-height: 100vh;
+  padding: 38px 42px 70px;
+  color: #f8f7fb;
+
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(255, 190, 50, 0.08),
+      transparent 30%
+    ),
+    #08060b;
+}
+
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+.dj-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 30px;
+  margin-bottom: 35px;
+}
+
+.dj-eyebrow {
+  color: #f5b82e;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.dj-header h1 {
+  margin: 0;
+  font-size: 48px;
+  line-height: 1.05;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.dj-header p {
+  margin: 12px 0 0;
+  color: #aaa1b7;
+  font-size: 16px;
+}
+
+
+/* =====================================================
+   YEAR BOX
+===================================================== */
+
+.dj-year-box {
+  position: absolute;
+  top: 115px;
+  right: 45px;
+
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  padding: 12px 15px;
+
+  background: rgba(20, 16, 25, 0.95);
+  border: 1px solid #292230;
+  border-radius: 14px;
+}
+
+.dj-year-box span {
+  color: #80768c;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+.dj-year-box select {
+  min-width: 100px;
+  padding: 9px 12px;
+
+  color: #fff;
+  background: #17121d;
+
+  border: 1px solid #393040;
+  border-radius: 10px;
+
+  outline: none;
+  cursor: pointer;
+}
+
+
+/* =====================================================
+   BUTTON
+===================================================== */
+
+.dj-primary-button {
+  border: none;
+  border-radius: 13px;
+
+  padding: 14px 22px;
+
+  background: linear-gradient(
+    135deg,
+    #ffd35a,
+    #f3b51e
+  );
+
+  color: #171009;
+
+  font-size: 14px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 10px 30px rgba(
+      245,
+      184,
+      46,
+      0.16
+    );
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.dj-primary-button:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 14px 35px rgba(
+      245,
+      184,
+      46,
+      0.25
+    );
+}
+
+.dj-primary-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+
+/* =====================================================
+   STAT CARDS
+===================================================== */
+
+.dj-stats {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 18px;
+
+  margin-top: 30px;
+  margin-bottom: 28px;
+}
+
+.dj-stat-card {
+  min-height: 135px;
+
+  display: flex;
+  align-items: center;
+  gap: 18px;
+
+  padding: 22px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(26, 21, 32, 0.96),
+      rgba(14, 11, 18, 0.96)
+    );
+
+  border: 1px solid #2a2330;
+
+  border-radius: 18px;
+
+  box-shadow:
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.025);
+}
+
+.dj-stat-icon {
+  width: 52px;
+  height: 52px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 15px;
+
+  background: rgba(
+    245,
+    184,
+    46,
+    0.10
+  );
+
+  color: #f5b82e;
+
+  font-size: 21px;
+  font-weight: 800;
+}
+
+.dj-stat-card span {
+  display: block;
+
+  color: #887d94;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  letter-spacing: 1.7px;
+
+  margin-bottom: 8px;
+}
+
+.dj-stat-card strong {
+  display: block;
+
+  color: #f8f7fb;
+
+  font-size: 28px;
+  font-weight: 800;
+
+  line-height: 1.1;
+}
+
+.dj-stat-card small {
+  display: block;
+
+  margin-top: 8px;
+
+  color: #716779;
+
+  font-size: 12px;
+}
+
+
+/* =====================================================
+   SEARCH
+===================================================== */
+
+.dj-search-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+
+  margin-bottom: 22px;
+}
+
+.dj-search {
+  flex: 1;
+
+  height: 54px;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 0 17px;
+
+  background: #100c15;
+
+  border: 1px solid #2b2431;
+
+  border-radius: 14px;
+}
+
+.dj-search span {
+  font-size: 18px;
+}
+
+.dj-search input {
+  width: 100%;
+
+  border: none;
+  outline: none;
+
+  background: transparent;
+
+  color: #fff;
+
+  font-size: 14px;
+}
+
+.dj-search input::placeholder {
+  color: #655d6d;
+}
+
+.dj-count {
+  color: #84798e;
+
+  font-size: 13px;
+
+  white-space: nowrap;
+}
+
+
+/* =====================================================
+   LIST SECTION
+===================================================== */
+
+.dj-list-section {
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(20, 16, 25, 0.96),
+      rgba(11, 8, 14, 0.96)
+    );
+
+  border: 1px solid #2b2431;
+
+  border-radius: 20px;
+}
+
+.dj-list-header {
+  padding: 28px 28px 24px;
+
+  border-bottom: 1px solid #27202d;
+}
+
+.dj-list-header h2 {
+  margin: 0;
+
+  color: #f7f5f8;
+
+  font-size: 27px;
+  font-weight: 800;
+}
+
+.dj-list-header p {
+  margin: 8px 0 0;
+
+  color: #766d7f;
+
+  font-size: 13px;
+}
+
+
+/* =====================================================
+   DJ CARDS
+===================================================== */
+
+.dj-cards {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 18px;
+
+  padding: 22px;
+}
+
+.dj-card {
+  display: flex;
+
+  overflow: hidden;
+
+  min-height: 230px;
+
+  background: #120e17;
+
+  border: 1px solid #2b2431;
+
+  border-radius: 17px;
+
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.dj-card:hover {
+  transform: translateY(-3px);
+
+  border-color: rgba(
+    245,
+    184,
+    46,
+    0.45
+  );
+}
+
+
+/* =====================================================
+   IMAGE
+===================================================== */
+
+.dj-card-image {
+  width: 180px;
+  min-width: 180px;
+
+  background: #0c0910;
+}
+
+.dj-card-image img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+.dj-no-image {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #f5b82e;
+
+  font-size: 38px;
+}
+
+
+/* =====================================================
+   CARD CONTENT
+===================================================== */
+
+.dj-card-content {
+  flex: 1;
+
+  padding: 21px;
+}
+
+.dj-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.dj-card-top h3 {
+  margin: 0;
+
+  font-size: 21px;
+  font-weight: 800;
+}
+
+.dj-card-top p {
+  margin: 7px 0 0;
+
+  color: #8b8092;
+
+  font-size: 13px;
+}
+
+.dj-year-tag {
+  height: fit-content;
+
+  padding: 6px 9px;
+
+  color: #f5b82e;
+
+  background: rgba(
+    245,
+    184,
+    46,
+    0.08
+  );
+
+  border: 1px solid rgba(
+    245,
+    184,
+    46,
+    0.15
+  );
+
+  border-radius: 8px;
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.dj-mobile {
+  margin-top: 15px;
+
+  color: #b5acbb;
+
+  font-size: 13px;
+}
+
+
+/* =====================================================
+   PAYMENT GRID
+===================================================== */
+
+.dj-payment-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 10px;
+
+  margin-top: 20px;
+}
+
+.dj-payment-grid div {
+  padding: 12px;
+
+  background: #0e0a12;
+
+  border-radius: 10px;
+}
+
+.dj-payment-grid span {
+  display: block;
+
+  color: #746a7d;
+
+  font-size: 9px;
+  font-weight: 800;
+
+  letter-spacing: 1px;
+}
+
+.dj-payment-grid strong {
+  display: block;
+
+  margin-top: 5px;
+
+  color: #f4f1f6;
+
+  font-size: 15px;
+}
+
+
+/* =====================================================
+   CARD FOOTER
+===================================================== */
+
+.dj-card-footer {
+  display: flex;
+
+  justify-content: space-between;
+  align-items: center;
+
+  margin-top: 18px;
+
+  padding-top: 15px;
+
+  border-top: 1px solid #28212d;
+}
+
+.dj-card-footer small {
+  color: #675e6d;
+
+  font-size: 11px;
+}
+
+.dj-delete-button {
+  padding: 7px 10px;
+
+  border: 1px solid #392b31;
+  border-radius: 8px;
+
+  background: transparent;
+
+  color: #d37d7d;
+
+  cursor: pointer;
+
+  font-size: 11px;
+}
+
+.dj-delete-button:hover {
+  background: rgba(
+    190,
+    60,
+    60,
+    0.08
+  );
+}
+
+
+/* =====================================================
+   EMPTY
+===================================================== */
+
+.dj-empty {
+  min-height: 310px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 40px;
+
+  text-align: center;
+}
+
+.dj-empty-icon {
+  width: 72px;
+  height: 72px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 18px;
+
+  border-radius: 18px;
+
+  background: rgba(
+    245,
+    184,
+    46,
+    0.08
+  );
+
+  color: #f5b82e;
+
+  font-size: 32px;
+}
+
+.dj-empty h3 {
+  margin: 0;
+
+  font-size: 21px;
+}
+
+.dj-empty p {
+  margin: 8px 0 22px;
+
+  color: #776d80;
+
+  font-size: 13px;
+}
+
+
+/* =====================================================
+   MODAL
+===================================================== */
+
+.dj-modal-overlay {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 9999;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 25px;
+
+  background: rgba(
+    0,
+    0,
+    0,
+    0.78
+  );
+
+  backdrop-filter: blur(7px);
+}
+
+.dj-modal {
+  width: min(
+    700px,
+    100%
+  );
+
+  max-height: 90vh;
+
+  overflow-y: auto;
+
+  padding: 30px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #18121d,
+      #0e0a12
+    );
+
+  border: 1px solid #3a303f;
+
+  border-radius: 22px;
+
+  box-shadow:
+    0 30px 100px
+      rgba(0, 0, 0, 0.55);
+}
+
+.dj-modal-header {
+  display: flex;
+
+  justify-content: space-between;
+
+  gap: 20px;
+
+  padding-bottom: 22px;
+
+  border-bottom: 1px solid #2a2330;
+}
+
+.dj-modal-header h2 {
+  margin: 0;
+
+  font-size: 28px;
+}
+
+.dj-modal-header p {
+  margin: 7px 0 0;
+
+  color: #81768b;
+
+  font-size: 13px;
+}
+
+.dj-close-button {
+  width: 40px;
+  height: 40px;
+
+  border: 1px solid #302936;
+
+  border-radius: 10px;
+
+  background: #151019;
+
+  color: #aaa0b0;
+
+  font-size: 25px;
+
+  cursor: pointer;
+}
+
+
+/* =====================================================
+   FORM
+===================================================== */
+
+.dj-form {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, 1fr);
+
+  gap: 19px;
+
+  padding-top: 25px;
+}
+
+.dj-form-group {
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+.dj-form-group label {
+  color: #9b91a4;
+
+  font-size: 11px;
+  font-weight: 800;
+
+  letter-spacing: 0.7px;
+}
+
+.dj-form-group input {
+  width: 100%;
+
+  box-sizing: border-box;
+
+  padding: 13px 14px;
+
+  background: #0e0a12;
+
+  border: 1px solid #312936;
+
+  border-radius: 10px;
+
+  outline: none;
+
+  color: #fff;
+
+  font-size: 14px;
+}
+
+.dj-form-group input:focus {
+  border-color: #f5b82e;
+
+  box-shadow:
+    0 0 0 3px
+      rgba(
+        245,
+        184,
+        46,
+        0.08
+      );
+}
+
+.dj-form-group input[type="file"] {
+  padding: 10px;
+}
+
+
+/* =====================================================
+   FORM SUMMARY
+===================================================== */
+
+.dj-form-summary {
+  grid-column: 1 / -1;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, 1fr);
+
+  gap: 15px;
+}
+
+.dj-form-summary div {
+  padding: 17px;
+
+  background: #100c15;
+
+  border: 1px solid #29222f;
+
+  border-radius: 12px;
+}
+
+.dj-form-summary span {
+  display: block;
+
+  color: #746a7d;
+
+  font-size: 9px;
+
+  font-weight: 800;
+
+  letter-spacing: 1.4px;
+}
+
+.dj-form-summary strong {
+  display: block;
+
+  margin-top: 6px;
+
+  color: #f5b82e;
+
+  font-size: 21px;
+}
+
+
+/* =====================================================
+   MODAL ACTIONS
+===================================================== */
+
+.dj-modal-actions {
+  grid-column: 1 / -1;
+
+  display: flex;
+
+  justify-content: flex-end;
+
+  gap: 12px;
+
+  padding-top: 8px;
+}
+
+.dj-cancel-button {
+  padding: 13px 19px;
+
+  border: 1px solid #332b38;
+
+  border-radius: 10px;
+
+  background: transparent;
+
+  color: #a59aaa;
+
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+
+/* =====================================================
+   RESPONSIVE - TABLET
+===================================================== */
+
+@media (max-width: 1100px) {
+
+  .dj-stats {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .dj-cards {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+
+/* =====================================================
+   RESPONSIVE - MOBILE
+===================================================== */
+
+@media (max-width: 700px) {
+
+  .dj-page {
+    padding: 25px 16px 50px;
+  }
+
+
+  /* ================================
+     HEADER
+  ================================= */
+
+  .dj-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+
+  .dj-header h1 {
+    font-size: 34px;
+  }
+
+  .dj-header p {
+    font-size: 13px;
+  }
+
+
+  /* ================================
+     YEAR BOX
+  ================================= */
+
+  .dj-year-box {
+    position: static;
+
+    width: 100%;
+
+    margin-bottom: 20px;
+
+    padding: 10px 12px;
+
+    justify-content: space-between;
+  }
+
+  .dj-year-box select {
+    min-width: 90px;
+  }
+
+
+  /* ================================
+     ⭐ FOUR STAT CARDS
+     2 x 2 ON MOBILE
+  ================================= */
+
+  .dj-stats {
+
+    display: grid;
+
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 10px;
+
+    width: 100%;
+
+    margin-top: 15px;
+    margin-bottom: 20px;
+  }
+
+
+  /* Individual card */
+
+  .dj-stat-card {
+
+    min-height: 145px;
+
+    width: 100%;
+
+    padding: 14px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    justify-content: center;
+
+    gap: 10px;
+
+    border-radius: 15px;
+  }
+
+
+  /* Icon */
+
+  .dj-stat-icon {
+
+    width: 38px;
+    height: 38px;
+
+    min-width: 38px;
+
+    border-radius: 10px;
+
+    font-size: 17px;
+  }
+
+
+  /* Title */
+
+  .dj-stat-card span {
+
+    font-size: 9px;
+
+    letter-spacing: 1.2px;
+
+    margin-bottom: 4px;
+  }
+
+
+  /* Main value */
+
+  .dj-stat-card strong {
+
+    font-size: 22px;
+
+    line-height: 1.1;
+  }
+
+
+  /* Description */
+
+  .dj-stat-card small {
+
+    font-size: 9px;
+
+    margin-top: 4px;
+
+    line-height: 1.3;
+  }
+
+
+  /* ================================
+     SEARCH
+  ================================= */
+
+  .dj-search-row {
+
+    flex-direction: column;
+
+    align-items: stretch;
+
+    gap: 10px;
+  }
+
+  .dj-search {
+
+    width: 100%;
+
+    height: 48px;
+  }
+
+  .dj-count {
+
+    text-align: right;
+
+    font-size: 12px;
+  }
+
+
+  /* ================================
+     LIST SECTION
+  ================================= */
+
+  .dj-list-section {
+    border-radius: 15px;
+  }
+
+  .dj-list-header {
+    padding: 20px;
+  }
+
+  .dj-list-header h2 {
+    font-size: 22px;
+  }
+
+  .dj-list-header p {
+    font-size: 11px;
+  }
+
+
+  /* ================================
+     DJ CARDS
+  ================================= */
+
+  .dj-cards {
+
+    grid-template-columns: 1fr;
+
+    gap: 12px;
+
+    padding: 12px;
+  }
+
+  .dj-card {
+
+    flex-direction: column;
+
+    min-height: auto;
+
+    width: 100%;
+  }
+
+
+  /* DJ IMAGE */
+
+  .dj-card-image {
+
+    width: 100%;
+
+    min-width: 100%;
+
+    height: 190px;
+  }
+
+
+  .dj-card-image img {
+    width: 100%;
+    height: 100%;
+  }
+
+
+  /* DJ CONTENT */
+
+  .dj-card-content {
+    padding: 16px;
+  }
+
+  .dj-card-top {
+    gap: 10px;
+  }
+
+  .dj-card-top h3 {
+    font-size: 19px;
+  }
+
+  .dj-card-top p {
+    font-size: 12px;
+  }
+
+  .dj-mobile {
+    margin-top: 10px;
+
+    font-size: 12px;
+  }
+
+
+  /* ================================
+     PAYMENT
+  ================================= */
+
+  .dj-payment-grid {
+
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+
+    gap: 7px;
+
+    margin-top: 15px;
+  }
+
+  .dj-payment-grid div {
+    padding: 9px;
+  }
+
+  .dj-payment-grid span {
+    font-size: 8px;
+  }
+
+  .dj-payment-grid strong {
+    font-size: 12px;
+  }
+
+
+  /* ================================
+     CARD FOOTER
+  ================================= */
+
+  .dj-card-footer {
+
+    flex-direction: column;
+
+    align-items: stretch;
+
+    gap: 10px;
+
+    margin-top: 15px;
+
+    padding-top: 12px;
+  }
+
+  .dj-delete-button {
+    width: 100%;
+
+    padding: 9px;
+  }
+
+
+  /* ================================
+     EMPTY
+  ================================= */
+
+  .dj-empty {
+    min-height: 250px;
+
+    padding: 25px 15px;
+  }
+
+
+  /* ================================
+     MODAL
+  ================================= */
+
+  .dj-modal-overlay {
+    padding: 12px;
+  }
+
+  .dj-modal {
+
+    width: 100%;
+
+    max-height: 92vh;
+
+    padding: 20px;
+
+    border-radius: 17px;
+  }
+
+  .dj-modal-header h2 {
+    font-size: 23px;
+  }
+
+  .dj-modal-header p {
+    font-size: 11px;
+  }
+
+
+  /* ================================
+     FORM
+  ================================= */
+
+  .dj-form {
+
+    grid-template-columns: 1fr;
+
+    gap: 15px;
+
+    padding-top: 20px;
+  }
+
+  .dj-form-summary {
+
+    grid-template-columns: 1fr;
+
+    gap: 10px;
+  }
+
+  .dj-form-summary div {
+    padding: 14px;
+  }
+
+
+  /* ================================
+     MODAL BUTTONS
+  ================================= */
+
+  .dj-modal-actions {
+
+    flex-direction: column;
+
+    width: 100%;
+
+    gap: 8px;
+  }
+
+  .dj-modal-actions button {
+
+    width: 100%;
+  }
+
+}
+
+
+/* =====================================================
+   VERY SMALL MOBILE
+===================================================== */
+
+@media (max-width: 380px) {
+
+  .dj-page {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .dj-stats {
+    gap: 8px;
+  }
+
+  .dj-stat-card {
+    min-height: 135px;
+    padding: 11px;
+  }
+
+  .dj-stat-icon {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    font-size: 15px;
+  }
+
+  .dj-stat-card strong {
+    font-size: 19px;
+  }
+
+  .dj-stat-card span {
+    font-size: 8px;
+  }
+
+  .dj-stat-card small {
+    font-size: 8px;
+  }
+
+}
