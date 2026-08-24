@@ -3,8 +3,18 @@ import React, {
   useState,
 } from "react";
 
-const API_URL =
-  "http://localhost:5000/api/committee";
+import api from "../utils/api";
+
+// =====================================================
+// API ENDPOINT
+// =====================================================
+
+const API_URL = "/committee";
+
+
+// =====================================================
+// COMMITTEE
+// =====================================================
 
 function Committee() {
 
@@ -40,21 +50,23 @@ function Committee() {
       setLoading(true);
 
       const response =
-        await fetch(API_URL);
+        await api.get(API_URL);
 
       const data =
-        await response.json();
+        response?.data ?? response;
 
-      if (!response.ok) {
+      if (
+        data?.success === false
+      ) {
         throw new Error(
-          data.message ||
+          data?.message ||
           "Failed to fetch committee"
         );
       }
 
       setMembers(
         Array.isArray(
-          data.committee
+          data?.committee
         )
           ? data.committee
           : []
@@ -62,9 +74,13 @@ function Committee() {
 
     } catch (error) {
 
-      console.error(error);
+      console.error(
+        "FETCH COMMITTEE ERROR:",
+        error
+      );
 
       alert(
+        error.message ||
         "Unable to load committee members."
       );
 
@@ -73,12 +89,17 @@ function Committee() {
       setLoading(false);
 
     }
-
   };
 
 
+  // ==========================================
+  // INITIAL LOAD
+  // ==========================================
+
   useEffect(() => {
+
     fetchMembers();
+
   }, []);
 
 
@@ -171,72 +192,98 @@ function Committee() {
 
     e.preventDefault();
 
+
+    // ------------------------------------------
+    // NAME VALIDATION
+    // ------------------------------------------
+
     if (!form.name.trim()) {
-      alert("Please enter name.");
+
+      alert(
+        "Please enter name."
+      );
+
       return;
     }
 
+
+    // ------------------------------------------
+    // MOBILE VALIDATION
+    // ------------------------------------------
+
     if (!form.mobile.trim()) {
+
       alert(
         "Please enter mobile number."
       );
+
       return;
     }
+
 
     try {
 
       setSaving(true);
 
+
       const payload = {
-        name: form.name.trim(),
-        mobile: form.mobile.trim(),
+
+        name:
+          form.name.trim(),
+
+        mobile:
+          form.mobile.trim(),
+
       };
 
+
       let response;
+
+
+      // ========================================
+      // UPDATE
+      // ========================================
 
       if (editingId) {
 
         response =
-          await fetch(
+          await api.put(
             `${API_URL}/${editingId}`,
-            {
-              method: "PUT",
-              headers: {
-                "Content-Type":
-                  "application/json",
-              },
-              body:
-                JSON.stringify(payload),
-            }
+            payload
           );
 
-      } else {
+      }
+
+      // ========================================
+      // ADD
+      // ========================================
+
+      else {
 
         response =
-          await fetch(
+          await api.post(
             API_URL,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type":
-                  "application/json",
-              },
-              body:
-                JSON.stringify(payload),
-            }
+            payload
           );
 
       }
 
-      const data =
-        await response.json();
 
-      if (!response.ok) {
+      const data =
+        response?.data ?? response;
+
+
+      if (
+        data?.success === false
+      ) {
+
         throw new Error(
-          data.message ||
+          data?.message ||
           "Failed to save member"
         );
+
       }
+
 
       alert(
         editingId
@@ -244,18 +291,24 @@ function Committee() {
           : "Committee member added successfully."
       );
 
+
       closeModal();
 
       await fetchMembers();
 
+
     } catch (error) {
 
-      console.error(error);
+      console.error(
+        "SAVE COMMITTEE ERROR:",
+        error
+      );
 
       alert(
         error.message ||
         "Failed to save member."
       );
+
 
     } finally {
 
@@ -279,33 +332,43 @@ function Committee() {
         "Are you sure you want to delete this committee member?"
       );
 
+
     if (!confirmed) return;
+
 
     try {
 
       const response =
-        await fetch(
-          `${API_URL}/${id}`,
-          {
-            method: "DELETE",
-          }
+        await api.delete(
+          `${API_URL}/${id}`
         );
+
 
       const data =
-        await response.json();
+        response?.data ?? response;
 
-      if (!response.ok) {
+
+      if (
+        data?.success === false
+      ) {
+
         throw new Error(
-          data.message ||
+          data?.message ||
           "Failed to delete member"
         );
+
       }
+
 
       await fetchMembers();
 
+
     } catch (error) {
 
-      console.error(error);
+      console.error(
+        "DELETE COMMITTEE ERROR:",
+        error
+      );
 
       alert(
         error.message ||
@@ -325,7 +388,10 @@ function Committee() {
 
     <div className="committee-page">
 
-      {/* HEADER */}
+
+      {/* =====================================
+          HEADER
+      ====================================== */}
 
       <div className="committee-header">
 
@@ -335,15 +401,18 @@ function Committee() {
             GANESH UTSAVAM
           </div>
 
+
           <h1>
             Committee
           </h1>
+
 
           <p>
             Manage festival committee members.
           </p>
 
         </div>
+
 
         <button
           className="committee-add-button"
@@ -355,7 +424,9 @@ function Committee() {
       </div>
 
 
-      {/* COUNT */}
+      {/* =====================================
+          COUNT
+      ====================================== */}
 
       <div className="committee-count-card">
 
@@ -363,11 +434,13 @@ function Committee() {
           ♟
         </div>
 
+
         <div>
 
           <span>
             COMMITTEE MEMBERS
           </span>
+
 
           <strong>
             {members.length}
@@ -378,9 +451,12 @@ function Committee() {
       </div>
 
 
-      {/* LIST */}
+      {/* =====================================
+          LIST
+      ====================================== */}
 
       <section className="committee-section">
+
 
         <div className="committee-section-header">
 
@@ -390,29 +466,47 @@ function Committee() {
               MEMBERS
             </div>
 
+
             <h2>
               Committee List
             </h2>
 
           </div>
 
+
           <span>
+
             {members.length}{" "}
+
             {members.length === 1
               ? "member"
               : "members"}
+
           </span>
 
         </div>
 
 
+        {/* ===================================
+            LOADING
+        =================================== */}
+
         {loading ? (
 
           <div className="committee-empty">
+
             Loading committee members...
+
           </div>
 
-        ) : members.length === 0 ? (
+        )
+
+
+        /* ===================================
+           EMPTY
+        =================================== */
+
+        : members.length === 0 ? (
 
           <div className="committee-empty">
 
@@ -420,13 +514,16 @@ function Committee() {
               ♟
             </div>
 
+
             <h3>
               No Committee Members
             </h3>
 
+
             <p>
               Add your first committee member.
             </p>
+
 
             <button
               className="committee-add-button"
@@ -437,31 +534,46 @@ function Committee() {
 
           </div>
 
-        ) : (
+        )
+
+
+        /* ===================================
+           MEMBERS
+        =================================== */
+
+        : (
 
           <div className="committee-list">
 
             {members.map(
-              (member, index) => (
+              (
+                member,
+                index
+              ) => (
 
                 <div
                   className="committee-row"
                   key={member._id}
                 >
 
+
                   {/* NUMBER */}
 
                   <div className="committee-number">
+
                     {index + 1}
+
                   </div>
 
 
                   {/* ICON */}
 
                   <div className="committee-member-icon">
+
                     {member.name
                       ?.charAt(0)
                       ?.toUpperCase()}
+
                   </div>
 
 
@@ -472,6 +584,7 @@ function Committee() {
                     <strong>
                       {member.name}
                     </strong>
+
 
                     <span>
                       Committee Member
@@ -488,6 +601,7 @@ function Committee() {
                       MOBILE
                     </span>
 
+
                     <strong>
                       {member.mobile}
                     </strong>
@@ -498,6 +612,7 @@ function Committee() {
                   {/* ACTIONS */}
 
                   <div className="committee-actions">
+
 
                     <button
                       className="committee-edit"
@@ -511,6 +626,7 @@ function Committee() {
                       ✏️
                     </button>
 
+
                     <button
                       className="committee-delete"
                       onClick={() =>
@@ -522,6 +638,7 @@ function Committee() {
                     >
                       🗑️
                     </button>
+
 
                   </div>
 
@@ -537,7 +654,9 @@ function Committee() {
       </section>
 
 
-      {/* MODAL */}
+      {/* =====================================
+          MODAL
+      ====================================== */}
 
       {showModal && (
 
@@ -550,13 +669,19 @@ function Committee() {
                 e.currentTarget &&
               !saving
             ) {
+
               closeModal();
+
             }
 
           }}
         >
 
+
           <div className="committee-modal">
+
+
+            {/* MODAL HEADER */}
 
             <div className="committee-modal-header">
 
@@ -566,13 +691,17 @@ function Committee() {
                   COMMITTEE
                 </div>
 
+
                 <h2>
+
                   {editingId
                     ? "Edit Member"
                     : "Add Member"}
+
                 </h2>
 
               </div>
+
 
               <button
                 className="committee-close"
@@ -585,16 +714,22 @@ function Committee() {
             </div>
 
 
+            {/* FORM */}
+
             <form
               className="committee-form"
               onSubmit={handleSubmit}
             >
+
+
+              {/* NAME */}
 
               <div className="committee-form-group">
 
                 <label>
                   Name *
                 </label>
+
 
                 <input
                   type="text"
@@ -608,11 +743,14 @@ function Committee() {
               </div>
 
 
+              {/* MOBILE */}
+
               <div className="committee-form-group">
 
                 <label>
                   Mobile Number *
                 </label>
+
 
                 <input
                   type="tel"
@@ -627,7 +765,10 @@ function Committee() {
               </div>
 
 
+              {/* ACTIONS */}
+
               <div className="committee-modal-actions">
+
 
                 <button
                   type="button"
@@ -638,16 +779,19 @@ function Committee() {
                   Cancel
                 </button>
 
+
                 <button
                   type="submit"
                   className="committee-save"
                   disabled={saving}
                 >
+
                   {saving
                     ? "Saving..."
                     : editingId
                     ? "Update Member"
                     : "Save Member"}
+
                 </button>
 
               </div>
@@ -661,7 +805,9 @@ function Committee() {
       )}
 
 
-      {/* CSS */}
+      {/* =====================================
+          CSS
+      ====================================== */}
 
       <style>{`
 
@@ -710,28 +856,39 @@ function Committee() {
           border: none;
           border-radius: 11px;
           padding: 13px 20px;
+
           background: linear-gradient(
             135deg,
             #ffd76c,
             #efb43b
           );
+
           color: #241909;
           font-weight: 800;
           cursor: pointer;
         }
 
 
-        /* COUNT */
+        /* =====================================
+           COUNT
+        ====================================== */
 
         .committee-count-card {
           width: 260px;
           padding: 20px;
+
           display: flex;
           align-items: center;
+
           gap: 14px;
           margin-bottom: 24px;
+
           background: #120d17;
-          border: 1px solid rgba(255,255,255,0.08);
+
+          border:
+            1px solid
+            rgba(255,255,255,0.08);
+
           border-radius: 16px;
         }
 
@@ -739,90 +896,135 @@ function Committee() {
         .committee-count-icon {
           width: 45px;
           height: 45px;
+
           display: flex;
           align-items: center;
           justify-content: center;
+
           border-radius: 11px;
-          background: rgba(245,189,69,0.08);
+
+          background:
+            rgba(245,189,69,0.08);
+
           color: #f5bd45;
         }
 
 
         .committee-count-card span {
           display: block;
+
           color: #776d7f;
+
           font-size: 9px;
+
           letter-spacing: 1.3px;
+
           margin-bottom: 5px;
         }
 
 
         .committee-count-card strong {
           color: #f4eff8;
+
           font-size: 22px;
         }
 
 
-        /* SECTION */
+        /* =====================================
+           SECTION
+        ====================================== */
 
         .committee-section {
           background: #120d17;
-          border: 1px solid rgba(255,255,255,0.08);
+
+          border:
+            1px solid
+            rgba(255,255,255,0.08);
+
           border-radius: 20px;
+
           overflow: hidden;
         }
 
 
         .committee-section-header {
           min-height: 100px;
+
           padding: 23px 27px;
+
           display: flex;
+
           align-items: center;
+
           justify-content: space-between;
-          border-bottom: 1px solid rgba(255,255,255,0.07);
+
+          border-bottom:
+            1px solid
+            rgba(255,255,255,0.07);
         }
 
 
         .committee-section-header h2 {
           margin: 0;
+
           color: #f4eff8;
+
           font-size: 23px;
         }
 
 
         .committee-section-header > span {
           color: #807589;
+
           font-size: 12px;
         }
 
 
-        /* LIST */
+        /* =====================================
+           LIST
+        ====================================== */
 
         .committee-list {
           padding: 18px;
+
           display: flex;
+
           flex-direction: column;
+
           gap: 9px;
         }
 
 
         .committee-row {
           min-height: 70px;
+
           padding: 11px 15px;
+
           display: flex;
+
           align-items: center;
+
           gap: 15px;
+
           background: #18121e;
-          border: 1px solid rgba(255,255,255,0.06);
+
+          border:
+            1px solid
+            rgba(255,255,255,0.06);
+
           border-radius: 12px;
+
           box-sizing: border-box;
         }
 
 
         .committee-number {
           width: 25px;
+
           color: #625969;
+
           font-size: 11px;
+
           text-align: center;
         }
 
@@ -830,34 +1032,49 @@ function Committee() {
         .committee-member-icon {
           width: 42px;
           height: 42px;
+
           flex-shrink: 0;
+
           display: flex;
+
           align-items: center;
+
           justify-content: center;
+
           border-radius: 10px;
-          background: rgba(245,189,69,0.08);
+
+          background:
+            rgba(245,189,69,0.08);
+
           color: #f5bd45;
+
           font-weight: 800;
         }
 
 
         .committee-member-info {
           flex: 1;
+
           min-width: 0;
         }
 
 
         .committee-member-info strong {
           display: block;
+
           color: #eee8f1;
+
           font-size: 14px;
         }
 
 
         .committee-member-info span {
           display: block;
+
           color: #6e6475;
+
           font-size: 10px;
+
           margin-top: 4px;
         }
 
@@ -869,21 +1086,27 @@ function Committee() {
 
         .committee-mobile span {
           display: block;
+
           color: #6e6475;
+
           font-size: 8px;
+
           letter-spacing: 1.2px;
+
           margin-bottom: 4px;
         }
 
 
         .committee-mobile strong {
           color: #c8c0cc;
+
           font-size: 12px;
         }
 
 
         .committee-actions {
           display: flex;
+
           gap: 7px;
         }
 
@@ -892,31 +1115,46 @@ function Committee() {
         .committee-delete {
           width: 36px;
           height: 36px;
+
           border-radius: 8px;
+
           cursor: pointer;
-          border: 1px solid rgba(255,255,255,0.07);
+
+          border:
+            1px solid
+            rgba(255,255,255,0.07);
         }
 
 
         .committee-edit {
-          background: rgba(245,189,69,0.05);
+          background:
+            rgba(245,189,69,0.05);
         }
 
 
         .committee-delete {
-          background: rgba(255,80,80,0.04);
+          background:
+            rgba(255,80,80,0.04);
         }
 
 
-        /* EMPTY */
+        /* =====================================
+           EMPTY
+        ====================================== */
 
         .committee-empty {
           min-height: 300px;
+
           display: flex;
+
           flex-direction: column;
+
           align-items: center;
+
           justify-content: center;
+
           text-align: center;
+
           color: #756a7d;
         }
 
@@ -924,64 +1162,99 @@ function Committee() {
         .committee-empty-icon {
           width: 60px;
           height: 60px;
+
           display: flex;
+
           align-items: center;
+
           justify-content: center;
+
           margin-bottom: 15px;
+
           border-radius: 15px;
-          background: rgba(245,189,69,0.07);
+
+          background:
+            rgba(245,189,69,0.07);
+
           color: #f5bd45;
+
           font-size: 22px;
         }
 
 
         .committee-empty h3 {
           margin: 0;
+
           color: #eae4ee;
         }
 
 
         .committee-empty p {
           margin: 8px 0 20px;
+
           font-size: 12px;
         }
 
 
-        /* MODAL */
+        /* =====================================
+           MODAL
+        ====================================== */
 
         .committee-modal-overlay {
           position: fixed;
+
           inset: 0;
+
           z-index: 9999;
+
           display: flex;
+
           align-items: center;
+
           justify-content: center;
+
           padding: 20px;
-          background: rgba(0,0,0,0.78);
+
+          background:
+            rgba(0,0,0,0.78);
+
           backdrop-filter: blur(7px);
         }
 
 
         .committee-modal {
           width: min(540px, 100%);
+
           background: #120d17;
-          border: 1px solid rgba(255,255,255,0.1);
+
+          border:
+            1px solid
+            rgba(255,255,255,0.1);
+
           border-radius: 19px;
         }
 
 
         .committee-modal-header {
           padding: 23px 25px;
+
           display: flex;
+
           align-items: flex-start;
+
           justify-content: space-between;
-          border-bottom: 1px solid rgba(255,255,255,0.07);
+
+          border-bottom:
+            1px solid
+            rgba(255,255,255,0.07);
         }
 
 
         .committee-modal-header h2 {
           margin: 0;
+
           color: #f4eff8;
+
           font-size: 24px;
         }
 
@@ -989,315 +1262,345 @@ function Committee() {
         .committee-close {
           width: 37px;
           height: 37px;
+
           border: none;
+
           border-radius: 9px;
-          background: rgba(255,255,255,0.04);
+
+          background:
+            rgba(255,255,255,0.04);
+
           color: #aaa0ae;
+
           font-size: 22px;
+
           cursor: pointer;
         }
 
 
         .committee-form {
           padding: 25px;
+
           display: flex;
+
           flex-direction: column;
+
           gap: 17px;
         }
 
 
         .committee-form-group {
           display: flex;
+
           flex-direction: column;
+
           gap: 8px;
         }
 
 
         .committee-form-group label {
           color: #93879d;
+
           font-size: 12px;
+
           font-weight: 600;
         }
 
 
         .committee-form-group input {
           width: 100%;
+
           height: 48px;
+
           padding: 0 13px;
+
           box-sizing: border-box;
-          border: 1px solid rgba(255,255,255,0.09);
+
+          border:
+            1px solid
+            rgba(255,255,255,0.09);
+
           border-radius: 10px;
+
           background: #19131f;
+
           color: #eee8f0;
+
           outline: none;
         }
 
 
         .committee-form-group input:focus {
-          border-color: rgba(245,189,69,0.5);
+          border-color:
+            rgba(245,189,69,0.5);
         }
 
 
         .committee-modal-actions {
           display: flex;
+
           justify-content: flex-end;
+
           gap: 10px;
+
           margin-top: 5px;
         }
 
 
         .committee-cancel {
           padding: 12px 19px;
-          border: 1px solid rgba(255,255,255,0.09);
+
+          border:
+            1px solid
+            rgba(255,255,255,0.09);
+
           border-radius: 9px;
-          background: rgba(255,255,255,0.03);
+
+          background:
+            rgba(255,255,255,0.03);
+
           color: #bdb4c3;
+
           cursor: pointer;
         }
 
 
         .committee-save {
           padding: 12px 19px;
+
           border: none;
+
           border-radius: 9px;
-          background: linear-gradient(
-            135deg,
-            #ffd76c,
-            #efb43b
-          );
+
+          background:
+            linear-gradient(
+              135deg,
+              #ffd76c,
+              #efb43b
+            );
+
           color: #241909;
+
           font-weight: 800;
+
           cursor: pointer;
         }
 
 
-        /* ==========================================
-   MOBILE COMMITTEE DESIGN
-   ========================================== */
+        /* =====================================
+           MOBILE COMMITTEE DESIGN
+        ====================================== */
 
-@media (max-width: 700px) {
+        @media (max-width: 700px) {
 
-  /* PAGE */
+          .committee-page {
+            padding:
+              25px 14px 45px;
+          }
 
-  .committee-page {
-    padding: 25px 14px 45px;
-  }
 
+          .committee-header {
+            flex-direction: column;
 
-  /* HEADER */
+            align-items: flex-start;
 
-  .committee-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
+            gap: 16px;
+          }
 
-  .committee-header h1 {
-    font-size: 34px;
-  }
 
+          .committee-header h1 {
+            font-size: 34px;
+          }
 
-  /* COUNT CARD */
 
-  .committee-count-card {
-    width: 100%;
-    box-sizing: border-box;
-  }
+          .committee-count-card {
+            width: 100%;
 
+            box-sizing: border-box;
+          }
 
-  /* ==========================================
-     COMMITTEE MEMBER CARD
-     ========================================== */
 
-  .committee-row {
+          /* MEMBER CARD */
 
-    /* Hide unwanted items through layout */
-    display: grid !important;
+          .committee-row {
 
-    /*
-      NAME | MOBILE | ACTIONS
-    */
-    grid-template-columns:
-      minmax(0, 1fr)
-      auto
-      auto;
+            display: grid !important;
 
-    align-items: center;
+            grid-template-columns:
+              minmax(0, 1fr)
+              auto
+              auto;
 
-    column-gap: 8px;
+            align-items: center;
 
-    min-height: 0 !important;
+            column-gap: 8px;
 
-    width: 100%;
+            min-height: 0 !important;
 
-    padding: 10px 10px !important;
+            width: 100%;
 
-    box-sizing: border-box;
+            padding:
+              10px 10px !important;
 
-    border-radius: 10px;
-  }
+            box-sizing: border-box;
 
+            border-radius: 10px;
+          }
 
-  /* ==========================================
-     REMOVE SERIAL NUMBER
-     ========================================== */
 
-  .committee-number {
-    display: none !important;
-  }
+          /* REMOVE SERIAL */
 
+          .committee-number {
+            display: none !important;
+          }
 
-  /* ==========================================
-     REMOVE AVATAR
-     ========================================== */
 
-  .committee-member-icon {
-    display: none !important;
-  }
+          /* REMOVE AVATAR */
 
+          .committee-member-icon {
+            display: none !important;
+          }
 
-  /* ==========================================
-     NAME
-     ========================================== */
 
-  .committee-member-info {
+          /* NAME */
 
-    min-width: 0 !important;
+          .committee-member-info {
 
-    width: auto !important;
+            min-width: 0 !important;
 
-    margin: 0 !important;
+            width: auto !important;
 
-    padding: 0 !important;
+            margin: 0 !important;
 
-    flex: none !important;
-  }
+            padding: 0 !important;
 
+            flex: none !important;
+          }
 
-  .committee-member-info strong {
 
-    display: block;
+          .committee-member-info strong {
 
-    margin: 0;
+            display: block;
 
-    color: #eee8f1;
+            margin: 0;
 
-    font-size: 11px;
+            color: #eee8f1;
 
-    font-weight: 700;
+            font-size: 11px;
 
-    line-height: 1.2;
+            font-weight: 700;
 
-    white-space: nowrap;
+            line-height: 1.2;
 
-    overflow: hidden;
+            white-space: nowrap;
 
-    text-overflow: ellipsis;
-  }
+            overflow: hidden;
 
+            text-overflow: ellipsis;
+          }
 
-  /* REMOVE "Committee Member" */
 
-  .committee-member-info span {
-    display: none !important;
-  }
+          /* REMOVE COMMITTEE MEMBER TEXT */
 
+          .committee-member-info span {
+            display: none !important;
+          }
 
-  /* ==========================================
-     MOBILE NUMBER
-     ========================================== */
 
-  .committee-mobile {
+          /* MOBILE NUMBER */
 
-    min-width: 0 !important;
+          .committee-mobile {
 
-    width: auto !important;
+            min-width: 0 !important;
 
-    margin: 0 !important;
+            width: auto !important;
 
-    padding: 0 !important;
+            margin: 0 !important;
 
-    white-space: nowrap;
+            padding: 0 !important;
 
-    text-align: right;
-  }
+            white-space: nowrap;
 
+            text-align: right;
+          }
 
-  /* REMOVE MOBILE LABEL */
 
-  .committee-mobile span {
-    display: none !important;
-  }
+          /* REMOVE MOBILE LABEL */
 
+          .committee-mobile span {
+            display: none !important;
+          }
 
-  .committee-mobile strong {
 
-    display: block;
+          .committee-mobile strong {
 
-    margin: 0;
+            display: block;
 
-    color: #c8c0cc;
+            margin: 0;
 
-    font-size: 9px;
+            color: #c8c0cc;
 
-    font-weight: 600;
+            font-size: 9px;
 
-    white-space: nowrap;
-  }
+            font-weight: 600;
 
+            white-space: nowrap;
+          }
 
-  /* ==========================================
-     EDIT + DELETE
-     ========================================== */
 
-  .committee-actions {
+          /* EDIT + DELETE */
 
-    display: flex !important;
+          .committee-actions {
 
-    align-items: center;
+            display: flex !important;
 
-    justify-content: center;
+            align-items: center;
 
-    gap: 4px;
+            justify-content: center;
 
-    margin: 0 !important;
+            gap: 4px;
 
-    padding: 0 !important;
+            margin: 0 !important;
 
-    flex-shrink: 0;
-  }
+            padding: 0 !important;
 
+            flex-shrink: 0;
+          }
 
-  .committee-edit,
-  .committee-delete {
 
-    width: 27px !important;
+          .committee-edit,
+          .committee-delete {
 
-    height: 27px !important;
+            width: 27px !important;
 
-    min-width: 27px !important;
+            height: 27px !important;
 
-    padding: 0 !important;
+            min-width: 27px !important;
 
-    margin: 0 !important;
+            padding: 0 !important;
 
-    display: flex;
+            margin: 0 !important;
 
-    align-items: center;
+            display: flex;
 
-    justify-content: center;
+            align-items: center;
 
-    border-radius: 7px;
+            justify-content: center;
 
-    font-size: 10px;
-  }
+            border-radius: 7px;
 
-}
+            font-size: 10px;
+          }
+
+        }
 
       `}</style>
 
     </div>
+
   );
+
 }
+
 
 export default Committee;
