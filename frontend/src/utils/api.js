@@ -3,7 +3,19 @@
 // CENTRAL API HELPER
 // =====================================================
 
-const API_BASE_URL = "http://localhost:5000/api";
+// =====================================================
+// API BASE URL
+// =====================================================
+
+// Local development:
+// http://localhost:5000/api
+
+// Production:
+// https://ganesh-festival-backend-qzjm.onrender.com/api
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  "https://ganesh-festival-backend-qzjm.onrender.com/api";
 
 // =====================================================
 // GET TOKEN
@@ -61,7 +73,6 @@ export const clearAuth = () => {
   localStorage.removeItem("token");
   localStorage.removeItem("authToken");
   localStorage.removeItem("accessToken");
-
   localStorage.removeItem("festivalUser");
   localStorage.removeItem("user");
 };
@@ -85,7 +96,7 @@ const cleanEndpoint = (endpoint) => {
     return path;
   }
 
-  // Remove leading slash
+  // Remove leading slashes
   path = path.replace(/^\/+/, "");
 
   // Prevent /api/api/...
@@ -169,8 +180,15 @@ export const apiFetch = async (
       }
     }
 
-    console.log("API STATUS:", response.status);
-    console.log("API RESPONSE:", data);
+    console.log(
+      "API STATUS:",
+      response.status
+    );
+
+    console.log(
+      "API RESPONSE:",
+      data
+    );
 
     // =================================================
     // 401
@@ -367,7 +385,6 @@ const api = {
   put,
   patch,
   delete: del,
-
   getToken,
   getCurrentUser,
   getUserRole,
