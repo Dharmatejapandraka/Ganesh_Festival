@@ -59,9 +59,35 @@ const app = express();
 // CORS
 // =====================================================
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://ganesh-festival-frontend.onrender.com",
+];
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: function (origin, callback) {
+
+      // Allow requests without an Origin
+      // such as Postman or server-to-server requests
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      console.log(
+        "CORS blocked origin:",
+        origin
+      );
+
+      return callback(
+        new Error("Not allowed by CORS")
+      );
+    },
+
     credentials: true,
   })
 );
@@ -120,6 +146,7 @@ app.use(
   "/api/auth",
   authRoutes
 );
+
 
 // =====================================================
 // USERS / ADMIN
@@ -286,8 +313,17 @@ app.use(
 // SERVER
 // =====================================================
 
-const PORT = process.env.PORT || 5000;
+const PORT =
+  process.env.PORT || 5000;
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.listen(
+  PORT,
+  "0.0.0.0",
+  () => {
+
+    console.log(
+      `Server running on port ${PORT}`
+    );
+
+  }
+);
