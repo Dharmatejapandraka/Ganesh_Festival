@@ -5,39 +5,73 @@ import React, {
 } from "react";
 
 import { useFestival } from "../context/FestivalContext";
+import { apiFetch } from "../utils/api";
 
-const API_URL =
-  "http://localhost:5000/api/photos";
 
-const SERVER_URL =
-  "http://localhost:5000";
+// =====================================================
+// SERVER URL
+// =====================================================
 
+// api.js uses:
+// VITE_API_URL
+//
+// Production API:
+// https://ganesh-festival-backend-qzjm.onrender.com/api
+//
+// Uploaded files are served from:
+// https://ganesh-festival-backend-qzjm.onrender.com/uploads/...
+
+const SERVER_URL = (
+  import.meta.env.VITE_API_URL ||
+  "https://ganesh-festival-backend-qzjm.onrender.com/api"
+).replace(
+  /\/api\/?$/,
+  ""
+);
+
+
+// =====================================================
+// PHOTOS
+// =====================================================
 
 function Photos() {
 
-  const { currentYear } = useFestival();
+  const { currentYear } =
+    useFestival();
 
-  const [photos, setPhotos] = useState([]);
 
-  const [loading, setLoading] = useState(true);
+  // =====================================================
+  // STATE
+  // =====================================================
 
-  const [saving, setSaving] = useState(false);
+  const [photos, setPhotos] =
+    useState([]);
 
-  const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] =
+    useState(true);
+
+  const [saving, setSaving] =
+    useState(false);
+
+  const [showModal, setShowModal] =
+    useState(false);
 
   const [selectedImage, setSelectedImage] =
     useState(null);
 
-  const [search, setSearch] = useState("");
-
-  const [form, setForm] = useState({
-    image: null,
-  });
+  const [search, setSearch] =
+    useState("");
 
 
-  // ==========================================
+  const [form, setForm] =
+    useState({
+      image: null,
+    });
+
+
+  // =====================================================
   // GET PHOTOS
-  // ==========================================
+  // =====================================================
 
   const fetchPhotos = async () => {
 
@@ -45,24 +79,25 @@ function Photos() {
 
       setLoading(true);
 
-      const response = await fetch(
-        `${API_URL}?year=${currentYear}`
+
+      const data =
+        await apiFetch(
+          `/photos?year=${currentYear}`
+        );
+
+
+      console.log(
+        "PHOTOS RESPONSE:",
+        data
       );
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.message ||
-          "Failed to fetch photos"
-        );
-      }
 
       setPhotos(
-        Array.isArray(data.photos)
+        Array.isArray(data?.photos)
           ? data.photos
           : []
       );
+
 
     } catch (error) {
 
@@ -71,19 +106,22 @@ function Photos() {
         error
       );
 
+
       setPhotos([]);
+
 
     } finally {
 
       setLoading(false);
 
     }
+
   };
 
 
-  // ==========================================
+  // =====================================================
   // LOAD WHEN YEAR CHANGES
-  // ==========================================
+  // =====================================================
 
   useEffect(() => {
 
@@ -92,16 +130,22 @@ function Photos() {
   }, [currentYear]);
 
 
-  // ==========================================
+  // =====================================================
   // IMAGE SELECT
-  // ==========================================
+  // =====================================================
 
-  const handleImageChange = (e) => {
+  const handleImageChange = (
+    event
+  ) => {
 
-    const file = e.target.files?.[0];
+    const file =
+      event.target.files?.[0];
+
 
     if (!file) {
+
       return;
+
     }
 
 
@@ -114,27 +158,40 @@ function Photos() {
     ];
 
 
-    if (!allowedTypes.includes(file.type)) {
+    if (
+      !allowedTypes.includes(
+        file.type
+      )
+    ) {
 
       alert(
         "Only JPG, PNG, WEBP and GIF images are allowed."
       );
 
-      e.target.value = "";
+
+      event.target.value = "";
+
 
       return;
+
     }
 
 
-    if (file.size > 5 * 1024 * 1024) {
+    if (
+      file.size >
+      5 * 1024 * 1024
+    ) {
 
       alert(
         "Image size must be less than 5 MB."
       );
 
-      e.target.value = "";
+
+      event.target.value = "";
+
 
       return;
+
     }
 
 
@@ -145,9 +202,9 @@ function Photos() {
   };
 
 
-  // ==========================================
+  // =====================================================
   // OPEN MODAL
-  // ==========================================
+  // =====================================================
 
   const openModal = () => {
 
@@ -155,22 +212,27 @@ function Photos() {
       image: null,
     });
 
+
     setShowModal(true);
 
   };
 
 
-  // ==========================================
+  // =====================================================
   // CLOSE MODAL
-  // ==========================================
+  // =====================================================
 
   const closeModal = () => {
 
     if (saving) {
+
       return;
+
     }
 
+
     setShowModal(false);
+
 
     setForm({
       image: null,
@@ -179,13 +241,15 @@ function Photos() {
   };
 
 
-  // ==========================================
+  // =====================================================
   // UPLOAD PHOTO
-  // ==========================================
+  // =====================================================
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (
+    event
+  ) => {
 
-    e.preventDefault();
+    event.preventDefault();
 
 
     if (!form.image) {
@@ -194,7 +258,9 @@ function Photos() {
         "Please select a photo."
       );
 
+
       return;
+
     }
 
 
@@ -203,7 +269,8 @@ function Photos() {
       setSaving(true);
 
 
-      const formData = new FormData();
+      const formData =
+        new FormData();
 
 
       formData.append(
@@ -218,22 +285,32 @@ function Photos() {
       );
 
 
-      const response = await fetch(
-        API_URL,
-        {
-          method: "POST",
-          body: formData,
-        }
+      // IMPORTANT:
+      // Do NOT manually set Content-Type.
+      // Browser must set multipart/form-data boundary.
+
+      const data =
+        await apiFetch(
+          "/photos",
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+
+
+      console.log(
+        "UPLOAD PHOTO RESPONSE:",
+        data
       );
 
 
-      const data = await response.json();
-
-
-      if (!response.ok) {
+      if (
+        data?.success === false
+      ) {
 
         throw new Error(
-          data.message ||
+          data?.message ||
           "Failed to upload photo"
         );
 
@@ -241,11 +318,13 @@ function Photos() {
 
 
       alert(
+        data?.message ||
         "Photo uploaded successfully."
       );
 
 
       closeModal();
+
 
       await fetchPhotos();
 
@@ -273,43 +352,72 @@ function Photos() {
   };
 
 
-  // ==========================================
+  // =====================================================
   // DELETE PHOTO
-  // ==========================================
+  // =====================================================
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (
+    id
+  ) => {
 
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this photo?"
-    );
+    if (!id) {
+
+      alert(
+        "Photo ID is missing."
+      );
+
+
+      return;
+
+    }
+
+
+    const confirmed =
+      window.confirm(
+        "Are you sure you want to delete this photo?"
+      );
 
 
     if (!confirmed) {
+
       return;
+
     }
 
 
     try {
 
-      const response = await fetch(
-        `${API_URL}/${id}`,
-        {
-          method: "DELETE",
-        }
+      const data =
+        await apiFetch(
+          `/photos/${id}`,
+          {
+            method: "DELETE",
+          }
+        );
+
+
+      console.log(
+        "DELETE PHOTO RESPONSE:",
+        data
       );
 
 
-      const data = await response.json();
-
-
-      if (!response.ok) {
+      if (
+        data?.success === false
+      ) {
 
         throw new Error(
-          data.message ||
+          data?.message ||
           "Failed to delete photo"
         );
 
       }
+
+
+      alert(
+        data?.message ||
+        "Photo deleted successfully."
+      );
 
 
       await fetchPhotos();
@@ -333,68 +441,98 @@ function Photos() {
   };
 
 
-  // ==========================================
+  // =====================================================
   // IMAGE URL
-  // ==========================================
+  // =====================================================
 
-  const getImageUrl = (image) => {
+  const getImageUrl = (
+    image
+  ) => {
 
     if (!image) {
+
       return "";
+
     }
 
 
-    if (image.startsWith("http")) {
+    // Already a complete URL
+    if (
+      image.startsWith("http://") ||
+      image.startsWith("https://")
+    ) {
+
       return image;
+
     }
 
 
-    return `${SERVER_URL}${image}`;
+    const cleanPath =
+      image.startsWith("/")
+        ? image
+        : `/${image}`;
+
+
+    return `${SERVER_URL}${cleanPath}`;
 
   };
 
 
-  // ==========================================
+  // =====================================================
   // SEARCH
-  // ==========================================
+  // =====================================================
 
-  const filteredPhotos = useMemo(() => {
+  const filteredPhotos =
+    useMemo(() => {
 
-    const text =
-      search.trim().toLowerCase();
-
-
-    if (!text) {
-      return photos;
-    }
-
-
-    return photos.filter((photo) => {
-
-      const date =
-        formatDate(photo.createdAt)
+      const text =
+        search
+          .trim()
           .toLowerCase();
 
 
-      return date.includes(text);
+      if (!text) {
 
-    });
+        return photos;
 
-  }, [photos, search]);
+      }
 
 
-  // ==========================================
+      return photos.filter(
+        (photo) => {
+
+          const date =
+            formatDate(
+              photo.createdAt
+            ).toLowerCase();
+
+
+          return date.includes(text);
+
+        }
+      );
+
+    }, [
+      photos,
+      search,
+    ]);
+
+
+  // =====================================================
   // DATE
-  // ==========================================
+  // =====================================================
 
   function formatDate(date) {
 
     if (!date) {
+
       return "-";
+
     }
 
 
-    const parsed = new Date(date);
+    const parsed =
+      new Date(date);
 
 
     if (
@@ -402,7 +540,9 @@ function Photos() {
         parsed.getTime()
       )
     ) {
+
       return "-";
+
     }
 
 
@@ -418,18 +558,18 @@ function Photos() {
   }
 
 
-  // ==========================================
+  // =====================================================
   // RENDER
-  // ==========================================
+  // =====================================================
 
   return (
 
     <div className="photos-page">
 
 
-      {/* =====================================
+      {/* ==========================================
           HEADER
-      ====================================== */}
+      ========================================== */}
 
       <section className="photos-header">
 
@@ -439,9 +579,11 @@ function Photos() {
             GANESH UTSAVAM {currentYear}
           </div>
 
+
           <h1>
             Photos
           </h1>
+
 
           <p>
             Store and manage festival memories.
@@ -460,12 +602,14 @@ function Photos() {
       </section>
 
 
-      {/* =====================================
+      {/* ==========================================
           STAT CARDS
-      ====================================== */}
+      ========================================== */}
 
       <section className="photos-stats">
 
+
+        {/* TOTAL PHOTOS */}
 
         <div className="photos-stat-card">
 
@@ -473,15 +617,18 @@ function Photos() {
             ▣
           </div>
 
+
           <div>
 
             <span>
               Total Photos
             </span>
 
+
             <strong>
               {photos.length}
             </strong>
+
 
             <small>
               {currentYear}
@@ -492,11 +639,14 @@ function Photos() {
         </div>
 
 
+        {/* GALLERY */}
+
         <div className="photos-stat-card">
 
           <div className="photos-stat-icon">
             📷
           </div>
+
 
           <div>
 
@@ -504,9 +654,11 @@ function Photos() {
               Gallery
             </span>
 
+
             <strong>
               {filteredPhotos.length}
             </strong>
+
 
             <small>
               Current results
@@ -517,11 +669,14 @@ function Photos() {
         </div>
 
 
+        {/* FESTIVAL */}
+
         <div className="photos-stat-card">
 
           <div className="photos-stat-icon">
             ★
           </div>
+
 
           <div>
 
@@ -529,9 +684,11 @@ function Photos() {
               Festival
             </span>
 
+
             <strong>
               {currentYear}
             </strong>
+
 
             <small>
               Ganesh Utsavam
@@ -545,9 +702,9 @@ function Photos() {
       </section>
 
 
-      {/* =====================================
+      {/* ==========================================
           SEARCH
-      ====================================== */}
+      ========================================== */}
 
       <div className="photos-search-row">
 
@@ -557,11 +714,16 @@ function Photos() {
             ⌕
           </span>
 
+
           <input
             type="text"
             value={search}
-            onChange={(e) =>
-              setSearch(e.target.value)
+            onChange={(
+              event
+            ) =>
+              setSearch(
+                event.target.value
+              )
             }
             placeholder="Search by date..."
           />
@@ -582,9 +744,9 @@ function Photos() {
       </div>
 
 
-      {/* =====================================
+      {/* ==========================================
           GALLERY
-      ====================================== */}
+      ========================================== */}
 
       <section className="photos-gallery-section">
 
@@ -597,6 +759,7 @@ function Photos() {
               {currentYear} GALLERY
             </div>
 
+
             <h2>
               Festival Photos
             </h2>
@@ -606,7 +769,9 @@ function Photos() {
         </div>
 
 
-        {/* LOADING */}
+        {/* ==========================================
+            LOADING
+        ========================================== */}
 
         {loading && (
 
@@ -615,6 +780,7 @@ function Photos() {
             <div className="photos-empty-icon">
               ⏳
             </div>
+
 
             <h3>
               Loading photos...
@@ -625,156 +791,199 @@ function Photos() {
         )}
 
 
-        {/* EMPTY */}
+        {/* ==========================================
+            EMPTY
+        ========================================== */}
 
         {!loading &&
           filteredPhotos.length === 0 && (
 
-          <div className="photos-empty">
+            <div className="photos-empty">
 
-            <div className="photos-empty-icon">
-              📷
+              <div className="photos-empty-icon">
+                📷
+              </div>
+
+
+              <h3>
+                No Photos Found
+              </h3>
+
+
+              <p>
+                Upload your first festival photo.
+              </p>
+
+
+              <button
+                className="photos-primary-button"
+                onClick={openModal}
+              >
+                + Upload Photo
+              </button>
+
             </div>
 
-            <h3>
-              No Photos Found
-            </h3>
-
-            <p>
-              Upload your first festival photo.
-            </p>
-
-            <button
-              className="photos-primary-button"
-              onClick={openModal}
-            >
-              + Upload Photo
-            </button>
-
-          </div>
-
-        )}
+          )}
 
 
-        {/* PHOTO GRID */}
+        {/* ==========================================
+            PHOTO GRID
+        ========================================== */}
 
         {!loading &&
           filteredPhotos.length > 0 && (
 
-          <div className="photos-grid">
+            <div className="photos-grid">
 
-            {filteredPhotos.map(
-              (photo) => {
+              {filteredPhotos.map(
+                (photo) => {
 
-                const imageUrl =
-                  getImageUrl(
-                    photo.image
-                  );
-
-
-                return (
-
-                  <article
-                    className="photo-card"
-                    key={photo._id}
-                  >
+                  const imageUrl =
+                    getImageUrl(
+                      photo.image
+                    );
 
 
-                    {/* IMAGE */}
+                  return (
 
-                    <div
-                      className="photo-card-image"
-                      onClick={() => {
-
-                        if (imageUrl) {
-
-                          setSelectedImage(
-                            imageUrl
-                          );
-
-                        }
-
-                      }}
+                    <article
+                      className="photo-card"
+                      key={photo._id}
                     >
 
-                      <img
-                        src={imageUrl}
-                        alt="Festival"
-                      />
 
+                      {/* IMAGE */}
 
-                      <div className="photo-hover">
+                      <div
+                        className="photo-card-image"
+                        onClick={() => {
 
-                        <span>
-                          View Full Size
-                        </span>
+                          if (imageUrl) {
 
-                      </div>
+                            setSelectedImage(
+                              imageUrl
+                            );
 
-                    </div>
+                          }
 
-
-                    {/* DATE + DELETE */}
-
-                    <div className="photo-card-content">
-
-                      <div>
-
-                        <span className="photo-date-label">
-                          UPLOADED
-                        </span>
-
-                        <strong>
-                          {formatDate(
-                            photo.createdAt
-                          )}
-                        </strong>
-
-                      </div>
-
-
-                      <button
-                        className="photo-delete"
-                        onClick={() =>
-                          handleDelete(
-                            photo._id
-                          )
-                        }
-                        title="Delete photo"
+                        }}
                       >
-                        🗑
-                      </button>
 
-                    </div>
+                        {imageUrl ? (
+
+                          <img
+                            src={imageUrl}
+                            alt="Festival"
+                            onError={(
+                              event
+                            ) => {
+
+                              console.error(
+                                "PHOTO IMAGE LOAD ERROR:",
+                                imageUrl
+                              );
+
+                              event.currentTarget.style.display =
+                                "none";
+
+                            }}
+                          />
+
+                        ) : (
+
+                          <div
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              color: "#f5bd45",
+                              fontSize: "40px",
+                            }}
+                          >
+                            📷
+                          </div>
+
+                        )}
 
 
-                  </article>
+                        <div className="photo-hover">
 
-                );
+                          <span>
+                            View Full Size
+                          </span>
 
-              }
-            )}
+                        </div>
 
-          </div>
+                      </div>
 
-        )}
+
+                      {/* DATE + DELETE */}
+
+                      <div className="photo-card-content">
+
+                        <div>
+
+                          <span className="photo-date-label">
+                            UPLOADED
+                          </span>
+
+
+                          <strong>
+                            {formatDate(
+                              photo.createdAt
+                            )}
+                          </strong>
+
+                        </div>
+
+
+                        <button
+                          className="photo-delete"
+                          onClick={() =>
+                            handleDelete(
+                              photo._id
+                            )
+                          }
+                          title="Delete photo"
+                        >
+                          🗑
+                        </button>
+
+                      </div>
+
+
+                    </article>
+
+                  );
+
+                }
+              )}
+
+            </div>
+
+          )}
 
       </section>
 
 
-      {/* =====================================
+      {/* ==========================================
           UPLOAD MODAL
-      ====================================== */}
+      ========================================== */}
 
       {showModal && (
 
         <div
           className="photos-modal-overlay"
-          onMouseDown={(e) => {
+          onMouseDown={(
+            event
+          ) => {
 
             if (
-              e.target ===
-              e.currentTarget &&
+              event.target ===
+                event.currentTarget &&
               !saving
             ) {
 
@@ -784,7 +993,6 @@ function Photos() {
 
           }}
         >
-
 
           <div className="photos-modal">
 
@@ -799,6 +1007,7 @@ function Photos() {
                   {currentYear} GALLERY
                 </div>
 
+
                 <h2>
                   Upload Photo
                 </h2>
@@ -808,8 +1017,12 @@ function Photos() {
 
               <button
                 className="photos-modal-close"
-                onClick={closeModal}
-                disabled={saving}
+                onClick={
+                  closeModal
+                }
+                disabled={
+                  saving
+                }
               >
                 ×
               </button>
@@ -821,7 +1034,9 @@ function Photos() {
 
             <form
               className="photos-form"
-              onSubmit={handleSubmit}
+              onSubmit={
+                handleSubmit
+              }
             >
 
 
@@ -837,7 +1052,9 @@ function Photos() {
                 <input
                   type="file"
                   accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
-                  onChange={handleImageChange}
+                  onChange={
+                    handleImageChange
+                  }
                   required
                 />
 
@@ -849,6 +1066,7 @@ function Photos() {
                     <span>
                       ✓
                     </span>
+
 
                     <strong>
                       {form.image.name}
@@ -871,15 +1089,17 @@ function Photos() {
                     DATE
                   </span>
 
+
                   <strong>
-                    {new Date().toLocaleDateString(
-                      "en-IN",
-                      {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      }
-                    )}
+                    {new Date()
+                      .toLocaleDateString(
+                        "en-IN",
+                        {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                        }
+                      )}
                   </strong>
 
                 </div>
@@ -896,12 +1116,15 @@ function Photos() {
 
               <div className="photos-modal-actions">
 
-
                 <button
                   type="button"
                   className="photos-secondary-button"
-                  onClick={closeModal}
-                  disabled={saving}
+                  onClick={
+                    closeModal
+                  }
+                  disabled={
+                    saving
+                  }
                 >
                   Cancel
                 </button>
@@ -910,31 +1133,30 @@ function Photos() {
                 <button
                   type="submit"
                   className="photos-primary-button"
-                  disabled={saving}
+                  disabled={
+                    saving
+                  }
                 >
                   {saving
                     ? "Uploading..."
                     : "Upload Photo"}
                 </button>
 
-
               </div>
 
 
             </form>
 
-
           </div>
-
 
         </div>
 
       )}
 
 
-      {/* =====================================
+      {/* ==========================================
           LARGE IMAGE MODAL
-      ====================================== */}
+      ========================================== */}
 
       {selectedImage && (
 
@@ -959,8 +1181,18 @@ function Photos() {
           <img
             src={selectedImage}
             alt="Festival"
-            onClick={(e) =>
-              e.stopPropagation()
+            onError={() => {
+
+              console.error(
+                "FULL IMAGE LOAD ERROR:",
+                selectedImage
+              );
+
+            }}
+            onClick={(
+              event
+            ) =>
+              event.stopPropagation()
             }
           />
 
@@ -971,8 +1203,10 @@ function Photos() {
             download
             target="_blank"
             rel="noreferrer"
-            onClick={(e) =>
-              e.stopPropagation()
+            onClick={(
+              event
+            ) =>
+              event.stopPropagation()
             }
           >
             ↓ Download Image
@@ -984,9 +1218,9 @@ function Photos() {
       )}
 
 
-      {/* =====================================
+      {/* ==========================================
           CSS
-      ====================================== */}
+      ========================================== */}
 
       <style>{`
 
@@ -1037,11 +1271,14 @@ function Photos() {
           border: none;
           border-radius: 11px;
           padding: 13px 20px;
-          background: linear-gradient(
-            135deg,
-            #ffd76c,
-            #efb43b
-          );
+
+          background:
+            linear-gradient(
+              135deg,
+              #ffd76c,
+              #efb43b
+            );
+
           color: #241909;
           font-weight: 800;
           cursor: pointer;
@@ -1074,14 +1311,19 @@ function Photos() {
         .photos-stat-card {
           min-height: 135px;
           padding: 23px;
+
           display: flex;
           align-items: center;
           gap: 17px;
+
           box-sizing: border-box;
+
           background: #120d17;
+
           border:
             1px solid
             rgba(255,255,255,0.08);
+
           border-radius: 18px;
         }
 
@@ -1090,12 +1332,16 @@ function Photos() {
           width: 50px;
           height: 50px;
           flex-shrink: 0;
+
           display: flex;
           align-items: center;
           justify-content: center;
+
           border-radius: 13px;
+
           background:
             rgba(245,189,69,0.08);
+
           color: #f5bd45;
           font-size: 20px;
         }
@@ -1136,15 +1382,20 @@ function Photos() {
         .photos-search {
           width: min(650px, 100%);
           height: 51px;
+
           display: flex;
           align-items: center;
           gap: 12px;
+
           padding: 0 16px;
           box-sizing: border-box;
+
           background: #130e18;
+
           border:
             1px solid
             rgba(255,255,255,0.08);
+
           border-radius: 12px;
         }
 
@@ -1179,10 +1430,13 @@ function Photos() {
 
         .photos-gallery-section {
           background: #120d17;
+
           border:
             1px solid
             rgba(255,255,255,0.08);
+
           border-radius: 20px;
+
           overflow: hidden;
         }
 
@@ -1190,8 +1444,10 @@ function Photos() {
         .photos-gallery-header {
           min-height: 105px;
           padding: 25px 28px;
+
           display: flex;
           align-items: center;
+
           border-bottom:
             1px solid
             rgba(255,255,255,0.07);
@@ -1209,21 +1465,32 @@ function Photos() {
 
         .photos-grid {
           padding: 22px;
+
           display: grid;
+
           grid-template-columns:
-            repeat(3, minmax(0, 1fr));
+            repeat(
+              3,
+              minmax(0, 1fr)
+            );
+
           gap: 20px;
         }
 
 
         .photo-card {
           min-width: 0;
+
           background: #18121e;
+
           border:
             1px solid
             rgba(255,255,255,0.07);
+
           border-radius: 15px;
+
           overflow: hidden;
+
           transition:
             transform 0.2s ease,
             border-color 0.2s ease;
@@ -1232,6 +1499,7 @@ function Photos() {
 
         .photo-card:hover {
           transform: translateY(-3px);
+
           border-color:
             rgba(245,189,69,0.2);
         }
@@ -1241,10 +1509,14 @@ function Photos() {
 
         .photo-card-image {
           position: relative;
+
           width: 100%;
           height: 230px;
+
           background: #0c0910;
+
           cursor: pointer;
+
           overflow: hidden;
         }
 
@@ -1252,8 +1524,11 @@ function Photos() {
         .photo-card-image img {
           width: 100%;
           height: 100%;
+
           object-fit: cover;
+
           display: block;
+
           transition:
             transform 0.25s ease;
         }
@@ -1268,22 +1543,30 @@ function Photos() {
         .photo-hover {
           position: absolute;
           inset: 0;
+
           display: flex;
           align-items: center;
           justify-content: center;
+
           background:
             rgba(0,0,0,0.42);
+
           opacity: 0;
+
           transition: 0.2s ease;
         }
 
 
         .photo-hover span {
           padding: 10px 15px;
+
           border-radius: 9px;
+
           background:
             rgba(0,0,0,0.65);
+
           color: white;
+
           font-size: 12px;
         }
 
@@ -1298,10 +1581,13 @@ function Photos() {
 
         .photo-card-content {
           min-height: 72px;
+
           padding: 15px 17px;
+
           display: flex;
           align-items: center;
           justify-content: space-between;
+
           gap: 15px;
         }
 
@@ -1329,14 +1615,20 @@ function Photos() {
         .photo-delete {
           width: 37px;
           height: 37px;
+
           flex-shrink: 0;
+
           border-radius: 9px;
+
           border:
             1px solid
             rgba(255,80,80,0.13);
+
           background:
             rgba(255,80,80,0.04);
+
           color: #dc7474;
+
           cursor: pointer;
         }
 
@@ -1351,11 +1643,17 @@ function Photos() {
 
         .photos-empty {
           min-height: 320px;
+
           display: flex;
+
           flex-direction: column;
+
           align-items: center;
+
           justify-content: center;
+
           text-align: center;
+
           padding: 40px;
         }
 
@@ -1363,14 +1661,20 @@ function Photos() {
         .photos-empty-icon {
           width: 65px;
           height: 65px;
+
           display: flex;
           align-items: center;
           justify-content: center;
+
           border-radius: 17px;
+
           background:
             rgba(245,189,69,0.07);
+
           color: #f5bd45;
+
           font-size: 26px;
+
           margin-bottom: 16px;
         }
 
@@ -1394,32 +1698,44 @@ function Photos() {
           position: fixed;
           inset: 0;
           z-index: 9999;
+
           display: flex;
           align-items: center;
           justify-content: center;
+
           padding: 25px;
+
           background:
             rgba(0,0,0,0.78);
+
           backdrop-filter: blur(7px);
+
           overflow-y: auto;
         }
 
 
         .photos-modal {
           width: min(600px, 100%);
+
           background: #120d17;
+
           border:
             1px solid
             rgba(255,255,255,0.1);
+
           border-radius: 20px;
         }
 
 
         .photos-modal-header {
           padding: 24px 26px;
+
           display: flex;
+
           justify-content: space-between;
+
           align-items: flex-start;
+
           border-bottom:
             1px solid
             rgba(255,255,255,0.07);
@@ -1436,75 +1752,109 @@ function Photos() {
         .photos-modal-close {
           width: 38px;
           height: 38px;
+
           border: none;
+
           border-radius: 9px;
+
           background:
             rgba(255,255,255,0.04);
+
           color: #aaa0ae;
+
           font-size: 23px;
+
           cursor: pointer;
         }
 
 
         .photos-form {
           padding: 26px;
+
           display: flex;
+
           flex-direction: column;
+
           gap: 20px;
         }
 
 
         .photos-form-group {
           display: flex;
+
           flex-direction: column;
+
           gap: 9px;
         }
 
 
         .photos-form-group label {
           color: #93879d;
+
           font-size: 13px;
+
           font-weight: 600;
         }
 
 
         .photos-form-group input[type="file"] {
           width: 100%;
+
           min-height: 52px;
+
           padding: 12px;
+
           box-sizing: border-box;
+
           border:
             1px solid
             rgba(255,255,255,0.09);
+
           border-radius: 10px;
+
           background: #19131f;
+
           color: #eee8f0;
+
           outline: none;
+
           font-size: 13px;
+
           cursor: pointer;
         }
 
 
         .selected-file {
           display: flex;
+
           align-items: center;
+
           gap: 8px;
+
           padding: 11px 13px;
+
           border-radius: 9px;
+
           background:
             rgba(245,189,69,0.06);
+
           border:
             1px solid
             rgba(245,189,69,0.12);
+
           color: #f5bd45;
+
           font-size: 12px;
+
           overflow: hidden;
         }
 
 
         .selected-file strong {
           overflow: hidden;
+
           text-overflow: ellipsis;
+
           white-space: nowrap;
         }
 
@@ -1513,13 +1863,20 @@ function Photos() {
 
         .photos-auto-date {
           padding: 16px;
+
           display: flex;
+
           align-items: center;
+
           justify-content: space-between;
+
           gap: 20px;
+
           border-radius: 12px;
+
           background:
             rgba(245,189,69,0.045);
+
           border:
             1px solid
             rgba(245,189,69,0.12);
@@ -1528,26 +1885,32 @@ function Photos() {
 
         .photos-auto-date div {
           display: flex;
+
           flex-direction: column;
+
           gap: 5px;
         }
 
 
         .photos-auto-date span {
           color: #786d81;
+
           font-size: 10px;
+
           letter-spacing: 1.5px;
         }
 
 
         .photos-auto-date strong {
           color: #f5bd45;
+
           font-size: 16px;
         }
 
 
         .photos-auto-date small {
           color: #756a7c;
+
           font-size: 11px;
         }
 
@@ -1556,7 +1919,9 @@ function Photos() {
 
         .photos-modal-actions {
           display: flex;
+
           justify-content: flex-end;
+
           gap: 12px;
         }
 
@@ -1565,12 +1930,18 @@ function Photos() {
           border:
             1px solid
             rgba(255,255,255,0.09);
+
           background:
             rgba(255,255,255,0.03);
+
           color: #bdb4c3;
+
           border-radius: 10px;
+
           padding: 13px 20px;
+
           font-weight: 700;
+
           cursor: pointer;
         }
 
@@ -1579,24 +1950,37 @@ function Photos() {
 
         .photos-image-modal {
           position: fixed;
+
           inset: 0;
+
           z-index: 10000;
+
           display: flex;
+
           align-items: center;
+
           justify-content: center;
+
           padding: 70px 30px 90px;
+
           box-sizing: border-box;
+
           background:
             rgba(0,0,0,0.92);
+
           backdrop-filter: blur(8px);
         }
 
 
         .photos-image-modal img {
           max-width: 90vw;
+
           max-height: 78vh;
+
           object-fit: contain;
+
           border-radius: 12px;
+
           box-shadow:
             0 25px 80px
             rgba(0,0,0,0.6);
@@ -1605,31 +1989,51 @@ function Photos() {
 
         .photos-image-close {
           position: absolute;
+
           top: 22px;
+
           right: 25px;
+
           width: 45px;
+
           height: 45px;
+
           border: none;
+
           border-radius: 10px;
+
           background:
             rgba(255,255,255,0.1);
+
           color: white;
+
           font-size: 28px;
+
           cursor: pointer;
         }
 
 
         .photos-download {
           position: absolute;
+
           bottom: 25px;
+
           left: 50%;
+
           transform: translateX(-50%);
+
           padding: 12px 20px;
+
           border-radius: 10px;
+
           background: #f5bd45;
+
           color: #211608;
+
           text-decoration: none;
+
           font-size: 13px;
+
           font-weight: 800;
         }
 
@@ -1642,13 +2046,18 @@ function Photos() {
             padding: 30px 24px 50px;
           }
 
+
           .photos-stats {
             grid-template-columns: 1fr;
           }
 
+
           .photos-grid {
             grid-template-columns:
-              repeat(2, minmax(0, 1fr));
+              repeat(
+                2,
+                minmax(0, 1fr)
+              );
           }
 
         }
@@ -1660,73 +2069,87 @@ function Photos() {
             padding: 24px 16px 40px;
           }
 
+
           .photos-header {
             flex-direction: column;
             align-items: flex-start;
           }
 
+
           .photos-header h1 {
             font-size: 34px;
           }
+
 
           .photos-search-row {
             flex-direction: column;
             align-items: stretch;
           }
 
+
           .photos-search {
             width: 100%;
           }
 
+
           .photos-count {
             align-self: flex-end;
           }
+
 
           .photos-grid {
             grid-template-columns: 1fr;
             padding: 15px;
           }
 
+
           .photo-card-image {
             height: 250px;
           }
+
 
           .photos-auto-date {
             flex-direction: column;
             align-items: flex-start;
           }
 
+
+          /* MOBILE:
+             SHOW ONLY TOTAL PHOTOS
+          */
+
+          .photos-stats {
+            display: block;
+          }
+
+
+          .photos-stats
+          .photos-stat-card {
+            display: none;
+          }
+
+
+          .photos-stats
+          .photos-stat-card:first-child {
+            display: flex;
+
+            width: 100%;
+
+            min-height: 105px;
+
+            margin-bottom: 18px;
+          }
+
         }
 
-        /* ==========================================
-   MOBILE - SHOW ONLY TOTAL PHOTOS
-   ========================================== */
-
-@media (max-width: 650px) {
-
-  .photos-stats {
-    display: block;
-  }
-
-  .photos-stats .photos-stat-card {
-    display: none;
-  }
-
-  /* Show only the first card = Total Photos */
-  .photos-stats .photos-stat-card:first-child {
-    display: flex;
-    width: 100%;
-    min-height: 105px;
-    margin-bottom: 18px;
-  }
-
-}
-
       `}</style>
-      
+
 
     </div>
+
   );
+
 }
+
 
 export default Photos;

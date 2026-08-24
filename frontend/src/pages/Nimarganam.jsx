@@ -4,14 +4,23 @@ import React, {
 } from "react";
 
 import { useFestival } from "../context/FestivalContext";
+import { apiFetch } from "../utils/api";
 
-const API_URL =
-  "http://localhost:5000/api/nimarganam";
+
+// =====================================================
+// NIMARGANAM
+// =====================================================
 
 function Nimarganam() {
+
   const {
     currentYear,
   } = useFestival();
+
+
+  // =====================================================
+  // STATE
+  // =====================================================
 
   const [records, setRecords] =
     useState([]);
@@ -29,106 +38,133 @@ function Nimarganam() {
     useState("");
 
 
-  // ==========================================
+  // =====================================================
   // FETCH
-  // ==========================================
+  // =====================================================
 
   const fetchRecords = async () => {
+
     try {
+
       setLoading(true);
 
-      const response =
-        await fetch(
-          `${API_URL}?year=${currentYear}`
-        );
 
       const data =
-        await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.message ||
-          "Failed to fetch links"
+        await apiFetch(
+          `/api/nimarganam?year=${currentYear}`
         );
-      }
+
+
+      console.log(
+        "NIMARGANAM RESPONSE:",
+        data
+      );
+
 
       setRecords(
-        Array.isArray(data.records)
+        Array.isArray(data?.records)
           ? data.records
           : []
       );
 
+
     } catch (error) {
+
       console.error(
         "FETCH NIMARGANAM ERROR:",
         error
       );
 
+
       setRecords([]);
 
+
     } finally {
+
       setLoading(false);
+
     }
+
   };
 
 
+  // =====================================================
+  // LOAD WHEN YEAR CHANGES
+  // =====================================================
+
   useEffect(() => {
+
     fetchRecords();
+
   }, [currentYear]);
 
 
-  // ==========================================
+  // =====================================================
   // OPEN MODAL
-  // ==========================================
+  // =====================================================
 
   const openModal = () => {
+
     setDriveLink("");
+
     setShowModal(true);
+
   };
 
 
-  // ==========================================
+  // =====================================================
   // CLOSE MODAL
-  // ==========================================
+  // =====================================================
 
   const closeModal = () => {
+
     if (saving) {
+
       return;
+
     }
 
+
     setShowModal(false);
+
     setDriveLink("");
+
   };
 
 
-  // ==========================================
+  // =====================================================
   // ADD LINK
-  // ==========================================
+  // =====================================================
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (
+    event
+  ) => {
+
+    event.preventDefault();
+
 
     if (!driveLink.trim()) {
+
       alert(
         "Please enter Google Drive link."
       );
 
+
       return;
+
     }
 
+
     try {
+
       setSaving(true);
 
-      const response =
-        await fetch(
-          API_URL,
+
+      const data =
+        await apiFetch(
+          "/api/nimarganam",
           {
             method: "POST",
-
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
 
             body: JSON.stringify({
               driveLink:
@@ -140,109 +176,166 @@ function Nimarganam() {
           }
         );
 
-      const data =
-        await response.json();
 
-      if (!response.ok) {
+      console.log(
+        "ADD NIMARGANAM RESPONSE:",
+        data
+      );
+
+
+      if (
+        data?.success === false
+      ) {
+
         throw new Error(
-          data.message ||
+          data?.message ||
           "Failed to add Drive link"
         );
+
       }
 
+
       alert(
+        data?.message ||
         "Drive link added successfully."
       );
 
+
       closeModal();
+
 
       await fetchRecords();
 
+
     } catch (error) {
+
       console.error(
         "ADD LINK ERROR:",
         error
       );
+
 
       alert(
         error.message ||
         "Failed to add Drive link"
       );
 
+
     } finally {
+
       setSaving(false);
+
     }
+
   };
 
 
-  // ==========================================
+  // =====================================================
   // DELETE
-  // ==========================================
+  // =====================================================
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (
+    id
+  ) => {
+
     const confirmed =
       window.confirm(
         "Are you sure you want to delete this Drive link?"
       );
 
+
     if (!confirmed) {
+
       return;
+
     }
 
+
     try {
-      const response =
-        await fetch(
-          `${API_URL}/${id}`,
+
+      const data =
+        await apiFetch(
+          `/api/nimarganam/${id}`,
           {
             method: "DELETE",
           }
         );
 
-      const data =
-        await response.json();
 
-      if (!response.ok) {
+      console.log(
+        "DELETE NIMARGANAM RESPONSE:",
+        data
+      );
+
+
+      if (
+        data?.success === false
+      ) {
+
         throw new Error(
-          data.message ||
+          data?.message ||
           "Failed to delete link"
         );
+
       }
+
+
+      alert(
+        data?.message ||
+        "Drive link deleted successfully."
+      );
+
 
       await fetchRecords();
 
+
     } catch (error) {
+
       console.error(
         "DELETE LINK ERROR:",
         error
       );
 
+
       alert(
         error.message ||
         "Failed to delete link"
       );
+
     }
+
   };
 
 
-  // ==========================================
+  // =====================================================
   // DATE
-  // ==========================================
+  // =====================================================
 
-  const formatDate = (date) => {
+  const formatDate = (
+    date
+  ) => {
+
     if (!date) {
+
       return "-";
+
     }
+
 
     const parsed =
       new Date(date);
+
 
     if (
       Number.isNaN(
         parsed.getTime()
       )
     ) {
+
       return "-";
+
     }
+
 
     return parsed.toLocaleDateString(
       "en-IN",
@@ -252,19 +345,22 @@ function Nimarganam() {
         year: "numeric",
       }
     );
+
   };
 
 
-  // ==========================================
+  // =====================================================
   // RENDER
-  // ==========================================
+  // =====================================================
 
   return (
+
     <div className="nimarganam-page">
 
-      {/* =====================================
+
+      {/* ==========================================
           HEADER
-      ====================================== */}
+      ========================================== */}
 
       <section className="nimarganam-header">
 
@@ -274,9 +370,11 @@ function Nimarganam() {
             GANESH UTSAVAM {currentYear}
           </div>
 
+
           <h1>
             Nimarganam
           </h1>
+
 
           <p>
             Access and manage Nimarganam
@@ -296,11 +394,12 @@ function Nimarganam() {
       </section>
 
 
-      {/* =====================================
+      {/* ==========================================
           STATS
-      ====================================== */}
+      ========================================== */}
 
       <section className="nimarganam-stats">
+
 
         {/* DRIVE LINKS */}
 
@@ -310,15 +409,18 @@ function Nimarganam() {
             ▶
           </div>
 
+
           <div>
 
             <span>
               Drive Links
             </span>
 
+
             <strong>
               {records.length}
             </strong>
+
 
             <small>
               {currentYear}
@@ -337,15 +439,18 @@ function Nimarganam() {
             📁
           </div>
 
+
           <div>
 
             <span>
               Storage
             </span>
 
+
             <strong>
               Google Drive
             </strong>
+
 
             <small>
               Festival videos
@@ -364,15 +469,18 @@ function Nimarganam() {
             ✓
           </div>
 
+
           <div>
 
             <span>
               Festival Year
             </span>
 
+
             <strong>
               {currentYear}
             </strong>
+
 
             <small>
               Current year
@@ -382,14 +490,16 @@ function Nimarganam() {
 
         </div>
 
+
       </section>
 
 
-      {/* =====================================
+      {/* ==========================================
           CONTENT
-      ====================================== */}
+      ========================================== */}
 
       <section className="nimarganam-section">
+
 
         <div className="nimarganam-section-header">
 
@@ -399,6 +509,7 @@ function Nimarganam() {
               {currentYear} VIDEOS
             </div>
 
+
             <h2>
               Nimarganam Videos
             </h2>
@@ -407,16 +518,21 @@ function Nimarganam() {
 
 
           <span>
+
             {records.length}{" "}
+
             {records.length === 1
               ? "link"
               : "links"}
+
           </span>
 
         </div>
 
 
-        {/* LOADING */}
+        {/* ==========================================
+            LOADING
+        ========================================== */}
 
         {loading && (
 
@@ -425,6 +541,7 @@ function Nimarganam() {
             <div className="nimarganam-empty-icon">
               ⏳
             </div>
+
 
             <h3>
               Loading...
@@ -435,141 +552,159 @@ function Nimarganam() {
         )}
 
 
-        {/* EMPTY */}
+        {/* ==========================================
+            EMPTY
+        ========================================== */}
 
         {!loading &&
           records.length === 0 && (
 
-          <div className="nimarganam-empty">
+            <div className="nimarganam-empty">
 
-            <div className="nimarganam-empty-icon">
-              ▶
+              <div className="nimarganam-empty-icon">
+                ▶
+              </div>
+
+
+              <h3>
+                No Drive Links
+              </h3>
+
+
+              <p>
+                Add the Google Drive link
+                containing your Nimarganam
+                video.
+              </p>
+
+
+              <button
+                className="nimarganam-primary-button"
+                onClick={openModal}
+              >
+                + Add Drive Link
+              </button>
+
             </div>
 
-            <h3>
-              No Drive Links
-            </h3>
-
-            <p>
-              Add the Google Drive link
-              containing your Nimarganam
-              video.
-            </p>
-
-            <button
-              className="nimarganam-primary-button"
-              onClick={openModal}
-            >
-              + Add Drive Link
-            </button>
-
-          </div>
-
-        )}
+          )}
 
 
-        {/* LIST */}
+        {/* ==========================================
+            LIST
+        ========================================== */}
 
         {!loading &&
           records.length > 0 && (
 
-          <div className="nimarganam-list">
+            <div className="nimarganam-list">
 
-            {records.map(
-              (record) => (
+              {records.map(
+                (record) => (
 
-                <div
-                  className="nimarganam-card"
-                  key={record._id}
-                >
+                  <div
+                    className="nimarganam-card"
+                    key={record._id}
+                  >
 
-                  <div className="nimarganam-card-icon">
-                    ▶
+
+                    <div className="nimarganam-card-icon">
+                      ▶
+                    </div>
+
+
+                    <div className="nimarganam-card-info">
+
+                      <span className="nimarganam-label">
+                        GOOGLE DRIVE
+                      </span>
+
+
+                      <h3>
+                        Nimarganam Video
+                      </h3>
+
+
+                      <p>
+                        Added on{" "}
+                        {formatDate(
+                          record.createdAt
+                        )}
+                      </p>
+
+                    </div>
+
+
+                    <div className="nimarganam-card-actions">
+
+                      <a
+                        href={
+                          record.driveLink
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="nimarganam-open-button"
+                      >
+                        Open Drive ↗
+                      </a>
+
+
+                      <button
+                        className="nimarganam-delete-button"
+                        onClick={() =>
+                          handleDelete(
+                            record._id
+                          )
+                        }
+                        title="Delete Drive link"
+                      >
+                        🗑
+                      </button>
+
+                    </div>
+
+
                   </div>
 
+                )
+              )}
 
-                  <div className="nimarganam-card-info">
+            </div>
 
-                    <span className="nimarganam-label">
-                      GOOGLE DRIVE
-                    </span>
-
-                    <h3>
-                      Nimarganam Video
-                    </h3>
-
-                    <p>
-                      Added on{" "}
-                      {formatDate(
-                        record.createdAt
-                      )}
-                    </p>
-
-                  </div>
-
-
-                  <div className="nimarganam-card-actions">
-
-                    <a
-                      href={
-                        record.driveLink
-                      }
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="nimarganam-open-button"
-                    >
-                      Open Drive ↗
-                    </a>
-
-
-                    <button
-                      className="nimarganam-delete-button"
-                      onClick={() =>
-                        handleDelete(
-                          record._id
-                        )
-                      }
-                    >
-                      🗑
-                    </button>
-
-                  </div>
-
-                </div>
-
-              )
-            )}
-
-          </div>
-
-        )}
+          )}
 
       </section>
 
 
-      {/* =====================================
+      {/* ==========================================
           ADD MODAL
-      ====================================== */}
+      ========================================== */}
 
       {showModal && (
 
         <div
           className="nimarganam-modal-overlay"
 
-          onMouseDown={(e) => {
+          onMouseDown={(
+            event
+          ) => {
 
             if (
-              e.target ===
-                e.currentTarget &&
+              event.target ===
+                event.currentTarget &&
               !saving
             ) {
+
               closeModal();
+
             }
 
           }}
         >
 
+
           <div className="nimarganam-modal">
+
 
             {/* HEADER */}
 
@@ -581,6 +716,7 @@ function Nimarganam() {
                   {currentYear} VIDEO
                 </div>
 
+
                 <h2>
                   Add Drive Link
                 </h2>
@@ -590,8 +726,12 @@ function Nimarganam() {
 
               <button
                 className="nimarganam-close"
-                onClick={closeModal}
-                disabled={saving}
+                onClick={
+                  closeModal
+                }
+                disabled={
+                  saving
+                }
               >
                 ×
               </button>
@@ -603,7 +743,9 @@ function Nimarganam() {
 
             <form
               className="nimarganam-form"
-              onSubmit={handleSubmit}
+              onSubmit={
+                handleSubmit
+              }
             >
 
               <div className="nimarganam-form-group">
@@ -612,17 +754,21 @@ function Nimarganam() {
                   Google Drive Link
                 </label>
 
+
                 <input
                   type="url"
                   value={driveLink}
-                  onChange={(e) =>
+                  onChange={(
+                    event
+                  ) =>
                     setDriveLink(
-                      e.target.value
+                      event.target.value
                     )
                   }
                   placeholder="https://drive.google.com/..."
                   required
                 />
+
 
                 <small>
                   Paste the Google Drive
@@ -642,15 +788,17 @@ function Nimarganam() {
                     DATE
                   </span>
 
+
                   <strong>
-                    {new Date().toLocaleDateString(
-                      "en-IN",
-                      {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      }
-                    )}
+                    {new Date()
+                      .toLocaleDateString(
+                        "en-IN",
+                        {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                        }
+                      )}
                   </strong>
 
                 </div>
@@ -671,8 +819,12 @@ function Nimarganam() {
                 <button
                   type="button"
                   className="nimarganam-secondary-button"
-                  onClick={closeModal}
-                  disabled={saving}
+                  onClick={
+                    closeModal
+                  }
+                  disabled={
+                    saving
+                  }
                 >
                   Cancel
                 </button>
@@ -681,7 +833,9 @@ function Nimarganam() {
                 <button
                   type="submit"
                   className="nimarganam-primary-button"
-                  disabled={saving}
+                  disabled={
+                    saving
+                  }
                 >
                   {saving
                     ? "Saving..."
@@ -699,9 +853,9 @@ function Nimarganam() {
       )}
 
 
-      {/* =====================================
+      {/* ==========================================
           CSS
-      ====================================== */}
+      ========================================== */}
 
       <style>{`
 
@@ -751,15 +905,18 @@ function Nimarganam() {
           border-radius: 11px;
           padding: 13px 20px;
 
-          background: linear-gradient(
-            135deg,
-            #ffd76c,
-            #efb43b
-          );
+          background:
+            linear-gradient(
+              135deg,
+              #ffd76c,
+              #efb43b
+            );
 
           color: #241909;
           font-weight: 800;
+
           cursor: pointer;
+
           transition: 0.2s ease;
         }
 
@@ -775,9 +932,7 @@ function Nimarganam() {
         }
 
 
-        /* ==========================================
-           STATS
-        ========================================== */
+        /* STATS */
 
         .nimarganam-stats {
           display: grid;
@@ -786,15 +941,18 @@ function Nimarganam() {
             repeat(3, 1fr);
 
           gap: 20px;
+
           margin-bottom: 25px;
         }
 
 
         .nimarganam-stat-card {
           min-height: 135px;
+
           padding: 23px;
 
           display: flex;
+
           align-items: center;
 
           gap: 17px;
@@ -818,7 +976,9 @@ function Nimarganam() {
           flex-shrink: 0;
 
           display: flex;
+
           align-items: center;
+
           justify-content: center;
 
           border-radius: 13px;
@@ -854,13 +1014,12 @@ function Nimarganam() {
 
         .nimarganam-stat-card small {
           color: #6f6577;
+
           font-size: 11px;
         }
 
 
-        /* ==========================================
-           SECTION
-        ========================================== */
+        /* SECTION */
 
         .nimarganam-section {
           background: #120d17;
@@ -881,7 +1040,9 @@ function Nimarganam() {
           padding: 25px 28px;
 
           display: flex;
+
           align-items: center;
+
           justify-content: space-between;
 
           border-bottom:
@@ -901,18 +1062,18 @@ function Nimarganam() {
 
         .nimarganam-section-header > span {
           color: #807589;
+
           font-size: 13px;
         }
 
 
-        /* ==========================================
-           LIST
-        ========================================== */
+        /* LIST */
 
         .nimarganam-list {
           padding: 22px;
 
           display: flex;
+
           flex-direction: column;
 
           gap: 15px;
@@ -945,7 +1106,9 @@ function Nimarganam() {
           flex-shrink: 0;
 
           display: flex;
+
           align-items: center;
+
           justify-content: center;
 
           border-radius: 14px;
@@ -961,6 +1124,7 @@ function Nimarganam() {
 
         .nimarganam-card-info {
           flex: 1;
+
           min-width: 0;
         }
 
@@ -1009,6 +1173,7 @@ function Nimarganam() {
           display: inline-flex;
 
           align-items: center;
+
           justify-content: center;
 
           padding: 11px 16px;
@@ -1057,9 +1222,13 @@ function Nimarganam() {
         }
 
 
-        /* ==========================================
-           EMPTY
-        ========================================== */
+        .nimarganam-delete-button:hover {
+          background:
+            rgba(255,80,80,0.1);
+        }
+
+
+        /* EMPTY */
 
         .nimarganam-empty {
           min-height: 320px;
@@ -1069,6 +1238,7 @@ function Nimarganam() {
           flex-direction: column;
 
           align-items: center;
+
           justify-content: center;
 
           text-align: center;
@@ -1084,6 +1254,7 @@ function Nimarganam() {
           display: flex;
 
           align-items: center;
+
           justify-content: center;
 
           border-radius: 17px;
@@ -1115,9 +1286,7 @@ function Nimarganam() {
         }
 
 
-        /* ==========================================
-           MODAL
-        ========================================== */
+        /* MODAL */
 
         .nimarganam-modal-overlay {
           position: fixed;
@@ -1129,6 +1298,7 @@ function Nimarganam() {
           display: flex;
 
           align-items: center;
+
           justify-content: center;
 
           padding: 25px;
@@ -1137,6 +1307,8 @@ function Nimarganam() {
             rgba(0,0,0,0.78);
 
           backdrop-filter: blur(7px);
+
+          overflow-y: auto;
         }
 
 
@@ -1268,6 +1440,8 @@ function Nimarganam() {
         }
 
 
+        /* DATE */
+
         .nimarganam-date {
           padding: 16px;
 
@@ -1351,15 +1525,14 @@ function Nimarganam() {
         }
 
 
-        /* ==========================================
-           RESPONSIVE
-        ========================================== */
+        /* RESPONSIVE */
 
         @media (max-width: 900px) {
 
           .nimarganam-page {
             padding: 30px 24px 50px;
           }
+
 
           .nimarganam-stats {
             grid-template-columns: 1fr;
@@ -1368,9 +1541,7 @@ function Nimarganam() {
         }
 
 
-        /* ==========================================
-           MOBILE
-        ========================================== */
+        /* MOBILE */
 
         @media (max-width: 650px) {
 
@@ -1392,20 +1563,23 @@ function Nimarganam() {
 
 
           /*
-             MOBILE STATS
+            MOBILE STATS
 
-             Drive Links + Storage
-             = 2 cards in one row
+            Drive Links + Storage
+            = 2 cards in one row
 
-             Festival Year
-             = hidden
+            Festival Year
+            = hidden
           */
 
           .nimarganam-stats {
             display: grid;
 
             grid-template-columns:
-              repeat(2, minmax(0, 1fr));
+              repeat(
+                2,
+                minmax(0, 1fr)
+              );
 
             gap: 12px;
 
@@ -1414,7 +1588,8 @@ function Nimarganam() {
 
 
           .nimarganam-stats
-            .nimarganam-stat-card {
+          .nimarganam-stat-card {
+
             min-height: 125px;
 
             padding: 16px;
@@ -1435,18 +1610,15 @@ function Nimarganam() {
           }
 
 
-          /*
-             Hide Festival Year
-          */
-
           .nimarganam-stats
-            .nimarganam-stat-card:nth-child(3) {
+          .nimarganam-stat-card:nth-child(3) {
             display: none;
           }
 
 
           .nimarganam-stat-icon {
             width: 42px;
+
             height: 42px;
 
             border-radius: 11px;
@@ -1480,9 +1652,7 @@ function Nimarganam() {
           }
 
 
-          /* =====================================
-             MOBILE VIDEO CARDS
-          ====================================== */
+          /* MOBILE VIDEO CARDS */
 
           .nimarganam-card {
             align-items: flex-start;
@@ -1501,9 +1671,7 @@ function Nimarganam() {
           }
 
 
-          /* =====================================
-             MOBILE DATE
-          ====================================== */
+          /* MOBILE DATE */
 
           .nimarganam-date {
             flex-direction: column;
@@ -1515,8 +1683,12 @@ function Nimarganam() {
 
       `}</style>
 
+
     </div>
+
   );
+
 }
+
 
 export default Nimarganam;

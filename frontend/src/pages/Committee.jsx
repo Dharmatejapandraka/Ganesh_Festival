@@ -5,6 +5,7 @@ import React, {
 
 import api from "../utils/api";
 
+
 // =====================================================
 // API ENDPOINT
 // =====================================================
@@ -39,9 +40,9 @@ function Committee() {
   });
 
 
-  // ==========================================
+  // =====================================================
   // FETCH MEMBERS
-  // ==========================================
+  // =====================================================
 
   const fetchMembers = async () => {
 
@@ -49,28 +50,118 @@ function Committee() {
 
       setLoading(true);
 
+
       const response =
         await api.get(API_URL);
+
 
       const data =
         response?.data ?? response;
 
+
       if (
         data?.success === false
       ) {
+
         throw new Error(
           data?.message ||
           "Failed to fetch committee"
         );
+
       }
 
-      setMembers(
+
+      // Support different API response formats
+
+      let committeeList = [];
+
+
+      if (
         Array.isArray(
           data?.committee
         )
-          ? data.committee
-          : []
+      ) {
+
+        committeeList =
+          data.committee;
+
+      } else if (
+        Array.isArray(data)
+      ) {
+
+        committeeList =
+          data;
+
+      } else if (
+        Array.isArray(
+          data?.data
+        )
+      ) {
+
+        committeeList =
+          data.data;
+
+      } else if (
+        Array.isArray(
+          data?.members
+        )
+      ) {
+
+        committeeList =
+          data.members;
+
+      } else if (
+        Array.isArray(
+          data?.records
+        )
+      ) {
+
+        committeeList =
+          data.records;
+
+      } else if (
+        Array.isArray(
+          data?.items
+        )
+      ) {
+
+        committeeList =
+          data.items;
+
+      } else if (
+        Array.isArray(
+          data?.results
+        )
+      ) {
+
+        committeeList =
+          data.results;
+
+      } else if (
+        Array.isArray(
+          data?.data?.committee
+        )
+      ) {
+
+        committeeList =
+          data.data.committee;
+
+      } else if (
+        Array.isArray(
+          data?.data?.members
+        )
+      ) {
+
+        committeeList =
+          data.data.members;
+
+      }
+
+
+      setMembers(
+        committeeList
       );
+
 
     } catch (error) {
 
@@ -79,22 +170,26 @@ function Committee() {
         error
       );
 
+
       alert(
-        error.message ||
+        error?.response?.data?.message ||
+        error?.message ||
         "Unable to load committee members."
       );
+
 
     } finally {
 
       setLoading(false);
 
     }
+
   };
 
 
-  // ==========================================
+  // =====================================================
   // INITIAL LOAD
-  // ==========================================
+  // =====================================================
 
   useEffect(() => {
 
@@ -103,9 +198,9 @@ function Committee() {
   }, []);
 
 
-  // ==========================================
+  // =====================================================
   // INPUT
-  // ==========================================
+  // =====================================================
 
   const handleChange = (e) => {
 
@@ -113,6 +208,7 @@ function Committee() {
       name,
       value,
     } = e.target;
+
 
     setForm(
       (previous) => ({
@@ -124,57 +220,71 @@ function Committee() {
   };
 
 
-  // ==========================================
+  // =====================================================
   // OPEN ADD
-  // ==========================================
+  // =====================================================
 
   const openAddModal = () => {
 
     setEditingId(null);
+
 
     setForm({
       name: "",
       mobile: "",
     });
 
+
     setShowModal(true);
 
   };
 
 
-  // ==========================================
+  // =====================================================
   // OPEN EDIT
-  // ==========================================
+  // =====================================================
 
   const openEditModal = (
     member
   ) => {
 
     setEditingId(
-      member._id
+      member?._id ||
+      member?.id
     );
 
+
     setForm({
-      name: member.name || "",
-      mobile: member.mobile || "",
+      name:
+        member?.name || "",
+
+      mobile:
+        member?.mobile ||
+        member?.phone ||
+        "",
     });
+
 
     setShowModal(true);
 
   };
 
 
-  // ==========================================
+  // =====================================================
   // CLOSE
-  // ==========================================
+  // =====================================================
 
   const closeModal = () => {
 
-    if (saving) return;
+    if (saving) {
+      return;
+    }
+
 
     setShowModal(false);
 
     setEditingId(null);
+
 
     setForm({
       name: "",
@@ -184,18 +294,20 @@ function Committee() {
   };
 
 
-  // ==========================================
+  // =====================================================
   // ADD / UPDATE
-  // ==========================================
+  // =====================================================
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (
+    e
+  ) => {
 
     e.preventDefault();
 
 
-    // ------------------------------------------
+    // =================================================
     // NAME VALIDATION
-    // ------------------------------------------
+    // =================================================
 
     if (!form.name.trim()) {
 
@@ -204,12 +316,13 @@ function Committee() {
       );
 
       return;
+
     }
 
 
-    // ------------------------------------------
+    // =================================================
     // MOBILE VALIDATION
-    // ------------------------------------------
+    // =================================================
 
     if (!form.mobile.trim()) {
 
@@ -218,6 +331,7 @@ function Committee() {
       );
 
       return;
+
     }
 
 
@@ -240,9 +354,9 @@ function Committee() {
       let response;
 
 
-      // ========================================
+      // =================================================
       // UPDATE
-      // ========================================
+      // =================================================
 
       if (editingId) {
 
@@ -254,9 +368,10 @@ function Committee() {
 
       }
 
-      // ========================================
+
+      // =================================================
       // ADD
-      // ========================================
+      // =================================================
 
       else {
 
@@ -294,6 +409,7 @@ function Committee() {
 
       closeModal();
 
+
       await fetchMembers();
 
 
@@ -304,8 +420,10 @@ function Committee() {
         error
       );
 
+
       alert(
-        error.message ||
+        error?.response?.data?.message ||
+        error?.message ||
         "Failed to save member."
       );
 
@@ -319,9 +437,9 @@ function Committee() {
   };
 
 
-  // ==========================================
+  // =====================================================
   // DELETE
-  // ==========================================
+  // =====================================================
 
   const handleDelete = async (
     id
@@ -333,7 +451,9 @@ function Committee() {
       );
 
 
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
 
     try {
@@ -370,8 +490,10 @@ function Committee() {
         error
       );
 
+
       alert(
-        error.message ||
+        error?.response?.data?.message ||
+        error?.message ||
         "Failed to delete member."
       );
 
@@ -380,18 +502,18 @@ function Committee() {
   };
 
 
-  // ==========================================
+  // =====================================================
   // UI
-  // ==========================================
+  // =====================================================
 
   return (
 
     <div className="committee-page">
 
 
-      {/* =====================================
+      {/* =================================================
           HEADER
-      ====================================== */}
+      ================================================= */}
 
       <div className="committee-header">
 
@@ -424,9 +546,9 @@ function Committee() {
       </div>
 
 
-      {/* =====================================
+      {/* =================================================
           COUNT
-      ====================================== */}
+      ================================================= */}
 
       <div className="committee-count-card">
 
@@ -451,9 +573,9 @@ function Committee() {
       </div>
 
 
-      {/* =====================================
+      {/* =================================================
           LIST
-      ====================================== */}
+      ================================================= */}
 
       <section className="committee-section">
 
@@ -487,9 +609,9 @@ function Committee() {
         </div>
 
 
-        {/* ===================================
+        {/* =================================================
             LOADING
-        =================================== */}
+        ================================================= */}
 
         {loading ? (
 
@@ -502,9 +624,9 @@ function Committee() {
         )
 
 
-        /* ===================================
+        /* =================================================
            EMPTY
-        =================================== */
+        ================================================= */
 
         : members.length === 0 ? (
 
@@ -537,9 +659,9 @@ function Committee() {
         )
 
 
-        /* ===================================
+        /* =================================================
            MEMBERS
-        =================================== */
+        ================================================= */
 
         : (
 
@@ -553,7 +675,11 @@ function Committee() {
 
                 <div
                   className="committee-row"
-                  key={member._id}
+                  key={
+                    member?._id ||
+                    member?.id ||
+                    index
+                  }
                 >
 
 
@@ -570,7 +696,7 @@ function Committee() {
 
                   <div className="committee-member-icon">
 
-                    {member.name
+                    {member?.name
                       ?.charAt(0)
                       ?.toUpperCase()}
 
@@ -582,7 +708,8 @@ function Committee() {
                   <div className="committee-member-info">
 
                     <strong>
-                      {member.name}
+                      {member?.name ||
+                        "Unknown"}
                     </strong>
 
 
@@ -603,7 +730,9 @@ function Committee() {
 
 
                     <strong>
-                      {member.mobile}
+                      {member?.mobile ||
+                        member?.phone ||
+                        "-"}
                     </strong>
 
                   </div>
@@ -631,7 +760,8 @@ function Committee() {
                       className="committee-delete"
                       onClick={() =>
                         handleDelete(
-                          member._id
+                          member?._id ||
+                          member?.id
                         )
                       }
                       title="Delete"
@@ -654,9 +784,9 @@ function Committee() {
       </section>
 
 
-      {/* =====================================
+      {/* =================================================
           MODAL
-      ====================================== */}
+      ================================================= */}
 
       {showModal && (
 
@@ -805,9 +935,9 @@ function Committee() {
       )}
 
 
-      {/* =====================================
+      {/* =================================================
           CSS
-      ====================================== */}
+      ================================================= */}
 
       <style>{`
 
@@ -869,10 +999,6 @@ function Committee() {
         }
 
 
-        /* =====================================
-           COUNT
-        ====================================== */
-
         .committee-count-card {
           width: 260px;
           padding: 20px;
@@ -925,14 +1051,9 @@ function Committee() {
 
         .committee-count-card strong {
           color: #f4eff8;
-
           font-size: 22px;
         }
 
-
-        /* =====================================
-           SECTION
-        ====================================== */
 
         .committee-section {
           background: #120d17;
@@ -975,14 +1096,9 @@ function Committee() {
 
         .committee-section-header > span {
           color: #807589;
-
           font-size: 12px;
         }
 
-
-        /* =====================================
-           LIST
-        ====================================== */
 
         .committee-list {
           padding: 18px;
@@ -1138,10 +1254,6 @@ function Committee() {
         }
 
 
-        /* =====================================
-           EMPTY
-        ====================================== */
-
         .committee-empty {
           min-height: 300px;
 
@@ -1190,15 +1302,12 @@ function Committee() {
 
 
         .committee-empty p {
-          margin: 8px 0 20px;
+          margin:
+            8px 0 20px;
 
           font-size: 12px;
         }
 
-
-        /* =====================================
-           MODAL
-        ====================================== */
 
         .committee-modal-overlay {
           position: fixed;
@@ -1223,7 +1332,8 @@ function Committee() {
 
 
         .committee-modal {
-          width: min(540px, 100%);
+          width:
+            min(540px, 100%);
 
           background: #120d17;
 
@@ -1242,7 +1352,8 @@ function Committee() {
 
           align-items: flex-start;
 
-          justify-content: space-between;
+          justify-content:
+            space-between;
 
           border-bottom:
             1px solid
@@ -1387,9 +1498,9 @@ function Committee() {
         }
 
 
-        /* =====================================
-           MOBILE COMMITTEE DESIGN
-        ====================================== */
+        /* =================================================
+           MOBILE
+        ================================================= */
 
         @media (max-width: 700px) {
 
@@ -1400,9 +1511,11 @@ function Committee() {
 
 
           .committee-header {
-            flex-direction: column;
+            flex-direction:
+              column;
 
-            align-items: flex-start;
+            align-items:
+              flex-start;
 
             gap: 16px;
           }
@@ -1419,8 +1532,6 @@ function Committee() {
             box-sizing: border-box;
           }
 
-
-          /* MEMBER CARD */
 
           .committee-row {
 
@@ -1448,31 +1559,29 @@ function Committee() {
           }
 
 
-          /* REMOVE SERIAL */
-
           .committee-number {
             display: none !important;
           }
 
-
-          /* REMOVE AVATAR */
 
           .committee-member-icon {
             display: none !important;
           }
 
 
-          /* NAME */
-
           .committee-member-info {
 
-            min-width: 0 !important;
+            min-width:
+              0 !important;
 
-            width: auto !important;
+            width:
+              auto !important;
 
-            margin: 0 !important;
+            margin:
+              0 !important;
 
-            padding: 0 !important;
+            padding:
+              0 !important;
 
             flex: none !important;
           }
@@ -1500,32 +1609,30 @@ function Committee() {
           }
 
 
-          /* REMOVE COMMITTEE MEMBER TEXT */
-
           .committee-member-info span {
             display: none !important;
           }
 
 
-          /* MOBILE NUMBER */
-
           .committee-mobile {
 
-            min-width: 0 !important;
+            min-width:
+              0 !important;
 
-            width: auto !important;
+            width:
+              auto !important;
 
-            margin: 0 !important;
+            margin:
+              0 !important;
 
-            padding: 0 !important;
+            padding:
+              0 !important;
 
             white-space: nowrap;
 
             text-align: right;
           }
 
-
-          /* REMOVE MOBILE LABEL */
 
           .committee-mobile span {
             display: none !important;
@@ -1548,8 +1655,6 @@ function Committee() {
           }
 
 
-          /* EDIT + DELETE */
-
           .committee-actions {
 
             display: flex !important;
@@ -1571,15 +1676,20 @@ function Committee() {
           .committee-edit,
           .committee-delete {
 
-            width: 27px !important;
+            width:
+              27px !important;
 
-            height: 27px !important;
+            height:
+              27px !important;
 
-            min-width: 27px !important;
+            min-width:
+              27px !important;
 
-            padding: 0 !important;
+            padding:
+              0 !important;
 
-            margin: 0 !important;
+            margin:
+              0 !important;
 
             display: flex;
 

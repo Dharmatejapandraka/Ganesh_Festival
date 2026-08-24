@@ -1,23 +1,55 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
 import {
   get,
   post,
   del,
 } from "../utils/api";
 
-const API_BASE_URL = "http://localhost:5000";
+
+// =====================================================
+// API / SERVER
+// =====================================================
+
+// Do NOT use localhost here.
+// api.js already knows the production API URL.
+
+const API_BASE_URL =
+  "https://ganesh-festival-backend-qzjm.onrender.com";
+
+const API_URL = "/dj-sets";
+
+
+// =====================================================
+// COMPONENT
+// =====================================================
 
 const DJSets = () => {
-  const [djSets, setDjSets] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
 
-  const [search, setSearch] = useState("");
-  const [selectedYear, setSelectedYear] = useState(2026);
+  const [djSets, setDjSets] =
+    useState([]);
 
-  const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] =
+    useState(true);
 
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [saving, setSaving] =
+    useState(false);
+
+  const [search, setSearch] =
+    useState("");
+
+  const [selectedYear, setSelectedYear] =
+    useState(2026);
+
+  const [showModal, setShowModal] =
+    useState(false);
+
+  const [selectedImage, setSelectedImage] =
+    useState(null);
 
   const [form, setForm] = useState({
     djName: "",
@@ -29,12 +61,15 @@ const DJSets = () => {
     image: null,
   });
 
+
   // =====================================================
   // LOAD DJ SETS
   // =====================================================
 
   const loadDJSets = async () => {
+
     try {
+
       setLoading(true);
 
       console.log(
@@ -42,85 +77,123 @@ const DJSets = () => {
         selectedYear
       );
 
-      const response = await get(
-        `/dj-sets?year=${selectedYear}`
-      );
+
+      const response =
+        await get(
+          `${API_URL}?year=${selectedYear}`
+        );
+
 
       console.log(
         "DJ SET FRONTEND RESPONSE:",
         response
       );
 
+
       if (response?.success) {
+
         setDjSets(
-          Array.isArray(response.djSets)
+          Array.isArray(
+            response.djSets
+          )
             ? response.djSets
             : []
         );
+
       } else {
+
         setDjSets([]);
+
       }
 
+
     } catch (error) {
+
       console.error(
         "LOAD DJ SETS ERROR:",
         error
       );
 
+
       alert(
         error.message ||
-          "Unable to load DJ sets."
+        "Unable to load DJ sets."
       );
+
 
       setDjSets([]);
 
+
     } finally {
+
       setLoading(false);
+
     }
+
   };
+
 
   // =====================================================
   // LOAD WHEN YEAR CHANGES
   // =====================================================
 
   useEffect(() => {
+
     loadDJSets();
+
   }, [selectedYear]);
+
 
   // =====================================================
   // FORM CHANGE
   // =====================================================
 
-  const handleChange = (event) => {
+  const handleChange = (
+    event
+  ) => {
+
     const {
       name,
       value,
       files,
     } = event.target;
 
+
     if (name === "image") {
-      setForm((previous) => ({
-        ...previous,
-        image:
-          files && files.length > 0
-            ? files[0]
-            : null,
-      }));
+
+      setForm(
+        (previous) => ({
+          ...previous,
+          image:
+            files &&
+            files.length > 0
+              ? files[0]
+              : null,
+        })
+      );
+
 
       return;
+
     }
 
-    setForm((previous) => ({
-      ...previous,
-      [name]: value,
-    }));
+
+    setForm(
+      (previous) => ({
+        ...previous,
+        [name]: value,
+      })
+    );
+
   };
+
 
   // =====================================================
   // OPEN MODAL
   // =====================================================
 
   const openAddModal = () => {
+
     setForm({
       djName: "",
       city: "",
@@ -131,316 +204,520 @@ const DJSets = () => {
       image: null,
     });
 
+
     setShowModal(true);
+
   };
+
 
   // =====================================================
   // CLOSE MODAL
   // =====================================================
 
   const closeModal = () => {
+
     if (saving) {
+
       return;
+
     }
 
+
     setShowModal(false);
+
   };
+
 
   // =====================================================
   // ADD DJ SET
   // =====================================================
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async (
+    event
+  ) => {
+
     event.preventDefault();
 
+
     if (!form.djName.trim()) {
-      alert("DJ name is required");
+
+      alert(
+        "DJ name is required"
+      );
+
       return;
+
     }
+
 
     if (!form.city.trim()) {
-      alert("City is required");
+
+      alert(
+        "City is required"
+      );
+
       return;
+
     }
 
-    if (!/^[0-9]{10}$/.test(form.mobile.trim())) {
+
+    if (
+      !/^[0-9]{10}$/.test(
+        form.mobile.trim()
+      )
+    ) {
+
       alert(
         "Enter a valid 10-digit mobile number"
       );
+
       return;
+
     }
+
 
     if (
       form.totalAmount === "" ||
       Number(form.totalAmount) < 0
     ) {
+
       alert(
         "Enter a valid total amount"
       );
+
       return;
+
     }
+
 
     if (
       form.advanceAmount === "" ||
       Number(form.advanceAmount) < 0
     ) {
+
       alert(
         "Enter a valid advance amount"
       );
+
       return;
+
     }
+
 
     if (
       Number(form.advanceAmount) >
       Number(form.totalAmount)
     ) {
+
       alert(
         "Advance amount cannot be greater than total amount"
       );
+
       return;
+
     }
 
+
     try {
+
       setSaving(true);
 
-      const formData = new FormData();
+
+      const formData =
+        new FormData();
+
 
       formData.append(
         "djName",
         form.djName.trim()
       );
 
+
       formData.append(
         "city",
         form.city.trim()
       );
+
 
       formData.append(
         "mobile",
         form.mobile.trim()
       );
 
+
       formData.append(
         "totalAmount",
         form.totalAmount
       );
+
 
       formData.append(
         "advanceAmount",
         form.advanceAmount
       );
 
+
       formData.append(
         "festivalYear",
         selectedYear
       );
 
+
       if (form.image) {
+
         formData.append(
           "image",
           form.image
         );
+
       }
 
-      const response = await post(
-        "/dj-sets",
-        formData
-      );
+
+      const response =
+        await post(
+          API_URL,
+          formData
+        );
+
 
       console.log(
         "ADD DJ RESPONSE:",
         response
       );
 
+
       if (response?.success) {
+
         alert(
           "DJ set added successfully."
         );
 
+
         setShowModal(false);
 
-        // Immediately reload from MongoDB
+
         await loadDJSets();
 
+
       } else {
+
         alert(
           response?.message ||
-            "Failed to add DJ set."
+          "Failed to add DJ set."
         );
+
       }
 
+
     } catch (error) {
+
       console.error(
         "ADD DJ SET ERROR:",
         error
       );
 
+
       alert(
         error.message ||
-          "Failed to add DJ set."
+        "Failed to add DJ set."
       );
 
+
     } finally {
+
       setSaving(false);
+
     }
+
   };
+
 
   // =====================================================
   // DELETE DJ SET
   // =====================================================
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (
+    id
+  ) => {
+
     if (!id) {
-      alert("DJ set ID is missing.");
+
+      alert(
+        "DJ set ID is missing."
+      );
+
       return;
+
     }
 
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this DJ set?"
-    );
+
+    const confirmed =
+      window.confirm(
+        "Are you sure you want to delete this DJ set?"
+      );
+
 
     if (!confirmed) {
+
       return;
+
     }
 
+
     try {
-      const response = await del(
-        `/dj-sets/${id}`
-      );
+
+      const response =
+        await del(
+          `${API_URL}/${id}`
+        );
+
 
       console.log(
         "DELETE DJ RESPONSE:",
         response
       );
 
+
       if (response?.success) {
+
         alert(
           "DJ set deleted successfully."
         );
 
-        // Remove immediately from screen
-        setDjSets((previous) =>
-          previous.filter(
-            (item) =>
-              item._id !== id
-          )
+
+        setDjSets(
+          (previous) =>
+            previous.filter(
+              (item) =>
+                item._id !== id
+            )
         );
+
 
       } else {
+
         alert(
           response?.message ||
-            "Failed to delete DJ set."
+          "Failed to delete DJ set."
         );
+
       }
 
+
     } catch (error) {
+
       console.error(
         "DELETE DJ SET ERROR:",
         error
       );
 
+
       alert(
         error.message ||
-          "Failed to delete DJ set."
+        "Failed to delete DJ set."
       );
+
     }
+
   };
+
 
   // =====================================================
   // SEARCH
   // =====================================================
 
-  const filteredDJSets = useMemo(() => {
-    const text =
-      search.trim().toLowerCase();
+  const filteredDJSets =
+    useMemo(() => {
 
-    if (!text) {
-      return djSets;
-    }
+      const text =
+        search
+          .trim()
+          .toLowerCase();
 
-    return djSets.filter((dj) => {
-      return (
-        String(dj.djName || "")
-          .toLowerCase()
-          .includes(text) ||
 
-        String(dj.city || "")
-          .toLowerCase()
-          .includes(text) ||
+      if (!text) {
 
-        String(dj.mobile || "")
-          .toLowerCase()
-          .includes(text)
+        return djSets;
+
+      }
+
+
+      return djSets.filter(
+        (dj) => {
+
+          return (
+
+            String(
+              dj.djName || ""
+            )
+              .toLowerCase()
+              .includes(text)
+
+            ||
+
+            String(
+              dj.city || ""
+            )
+              .toLowerCase()
+              .includes(text)
+
+            ||
+
+            String(
+              dj.mobile || ""
+            )
+              .toLowerCase()
+              .includes(text)
+
+          );
+
+        }
       );
-    });
-  }, [djSets, search]);
+
+    }, [
+      djSets,
+      search,
+    ]);
+
 
   // =====================================================
   // TOTALS
   // =====================================================
 
-  const totalAmount = useMemo(() => {
-    return filteredDJSets.reduce(
-      (sum, dj) =>
-        sum +
-        Number(dj.totalAmount || 0),
-      0
-    );
-  }, [filteredDJSets]);
+  const totalAmount =
+    useMemo(() => {
 
-  const totalAdvance = useMemo(() => {
-    return filteredDJSets.reduce(
-      (sum, dj) =>
-        sum +
-        Number(dj.advanceAmount || 0),
-      0
-    );
-  }, [filteredDJSets]);
+      return filteredDJSets.reduce(
+        (sum, dj) =>
+          sum +
+          Number(
+            dj.totalAmount || 0
+          ),
+        0
+      );
+
+    }, [filteredDJSets]);
+
+
+  const totalAdvance =
+    useMemo(() => {
+
+      return filteredDJSets.reduce(
+        (sum, dj) =>
+          sum +
+          Number(
+            dj.advanceAmount || 0
+          ),
+        0
+      );
+
+    }, [filteredDJSets]);
+
 
   const totalBalance =
-    totalAmount - totalAdvance;
+    totalAmount -
+    totalAdvance;
+
 
   // =====================================================
   // FORMAT MONEY
   // =====================================================
 
-  const money = (amount) => {
+  const money = (
+    amount
+  ) => {
+
     return `₹${Number(
       amount || 0
-    ).toLocaleString("en-IN")}`;
+    ).toLocaleString(
+      "en-IN"
+    )}`;
+
   };
+
 
   // =====================================================
   // IMAGE URL
   // =====================================================
 
-  const getImageUrl = (image) => {
+  const getImageUrl = (
+    image
+  ) => {
+
     if (!image) {
+
       return "";
+
     }
+
 
     if (
-      image.startsWith("http://") ||
-      image.startsWith("https://")
+      image.startsWith(
+        "http://"
+      ) ||
+      image.startsWith(
+        "https://"
+      )
     ) {
+
       return image;
+
     }
 
-    return `${API_BASE_URL}${image}`;
+
+    /*
+     * Backend returns paths such as:
+     *
+     * /uploads/dj/filename.jpg
+     *
+     * Production:
+     * https://ganesh-festival-backend-qzjm.onrender.com/uploads/...
+     *
+     */
+
+
+    const cleanPath =
+      image.startsWith("/")
+        ? image
+        : `/${image}`;
+
+
+    return `${API_BASE_URL}${cleanPath}`;
+
   };
+
 
   // =====================================================
   // DATE
   // =====================================================
 
-  const formatDate = (date) => {
+  const formatDate = (
+    date
+  ) => {
+
     if (!date) {
+
       return "-";
+
     }
 
-    return new Date(
-      date
-    ).toLocaleDateString(
+
+    const parsedDate =
+      new Date(date);
+
+
+    if (
+      Number.isNaN(
+        parsedDate.getTime()
+      )
+    ) {
+
+      return "-";
+
+    }
+
+
+    return parsedDate.toLocaleDateString(
       "en-IN",
       {
         day: "numeric",
@@ -448,14 +725,18 @@ const DJSets = () => {
         year: "numeric",
       }
     );
+
   };
+
 
   // =====================================================
   // JSX
   // =====================================================
 
   return (
+
     <div className="dj-page">
+
 
       {/* =================================================
           PAGE HEADER
@@ -464,27 +745,42 @@ const DJSets = () => {
       <div className="dj-header">
 
         <div>
+
           <div className="dj-eyebrow">
             GANESH UTSAVAM {selectedYear}
           </div>
 
-          <h1>DJ Set</h1>
+
+          <h1>
+            DJ Set
+          </h1>
+
 
           <p>
             Manage DJ bookings and payment
             details.
           </p>
+
         </div>
+
 
         <button
           className="dj-add-btn"
-          onClick={openAddModal}
+          onClick={
+            openAddModal
+          }
         >
-          <span>＋</span>
+
+          <span>
+            ＋
+          </span>
+
           Add DJ Set
+
         </button>
 
       </div>
+
 
       {/* =================================================
           YEAR
@@ -492,34 +788,45 @@ const DJSets = () => {
 
       <div className="dj-year-box">
 
-        <span>FESTIVAL YEAR</span>
+        <span>
+          FESTIVAL YEAR
+        </span>
+
 
         <select
           value={selectedYear}
           onChange={(event) =>
             setSelectedYear(
-              Number(event.target.value)
+              Number(
+                event.target.value
+              )
             )
           }
         >
+
           <option value={2026}>
             2026
           </option>
+
 
           <option value={2027}>
             2027
           </option>
 
+
           <option value={2028}>
             2028
           </option>
 
+
           <option value={2029}>
             2029
           </option>
+
         </select>
 
       </div>
+
 
       {/* =================================================
           STAT CARDS
@@ -527,25 +834,36 @@ const DJSets = () => {
 
       <div className="dj-stats">
 
+
         <div className="dj-stat-card">
 
           <div className="dj-stat-icon">
             🎧
           </div>
 
+
           <div>
-            <small>DJ SETS</small>
+
+            <small>
+              DJ SETS
+            </small>
+
 
             <strong>
-              {filteredDJSets.length}
+              {
+                filteredDJSets.length
+              }
             </strong>
+
 
             <span>
               {selectedYear} bookings
             </span>
+
           </div>
 
         </div>
+
 
         <div className="dj-stat-card">
 
@@ -553,19 +871,31 @@ const DJSets = () => {
             ₹
           </div>
 
+
           <div>
-            <small>TOTAL AMOUNT</small>
+
+            <small>
+              TOTAL AMOUNT
+            </small>
+
 
             <strong>
-              {money(totalAmount)}
+              {
+                money(
+                  totalAmount
+                )
+              }
             </strong>
+
 
             <span>
               Total booking amount
             </span>
+
           </div>
 
         </div>
+
 
         <div className="dj-stat-card">
 
@@ -573,19 +903,31 @@ const DJSets = () => {
             ✓
           </div>
 
+
           <div>
-            <small>ADVANCE PAID</small>
+
+            <small>
+              ADVANCE PAID
+            </small>
+
 
             <strong>
-              {money(totalAdvance)}
+              {
+                money(
+                  totalAdvance
+                )
+              }
             </strong>
+
 
             <span>
               Amount paid
             </span>
+
           </div>
 
         </div>
+
 
         <div className="dj-stat-card">
 
@@ -593,21 +935,33 @@ const DJSets = () => {
             ◇
           </div>
 
+
           <div>
-            <small>BALANCE</small>
+
+            <small>
+              BALANCE
+            </small>
+
 
             <strong>
-              {money(totalBalance)}
+              {
+                money(
+                  totalBalance
+                )
+              }
             </strong>
+
 
             <span>
               Amount remaining
             </span>
+
           </div>
 
         </div>
 
       </div>
+
 
       {/* =================================================
           SEARCH
@@ -617,7 +971,10 @@ const DJSets = () => {
 
         <div className="dj-search">
 
-          <span>🔍</span>
+          <span>
+            🔍
+          </span>
+
 
           <input
             type="text"
@@ -630,7 +987,9 @@ const DJSets = () => {
             }
           />
 
+
           {search && (
+
             <button
               onClick={() =>
                 setSearch("")
@@ -638,15 +997,24 @@ const DJSets = () => {
             >
               ×
             </button>
+
           )}
 
         </div>
 
+
         <span className="dj-count">
-          {filteredDJSets.length} DJ sets
+
+          {
+            filteredDJSets.length
+          }{" "}
+
+          DJ sets
+
         </span>
 
       </div>
+
 
       {/* =================================================
           RECORD SECTION
@@ -654,40 +1022,56 @@ const DJSets = () => {
 
       <section className="dj-record-section">
 
+
         <div className="dj-record-header">
 
           <div>
+
             <div className="dj-eyebrow">
               {selectedYear} BOOKINGS
             </div>
+
 
             <h2>
               DJ Set Records
             </h2>
 
+
             <p>
               All DJ bookings for the
               selected festival year.
             </p>
+
           </div>
 
+
           <div className="dj-record-total">
-            {money(totalAmount)}
+            {
+              money(
+                totalAmount
+              )
+            }
           </div>
 
         </div>
+
 
         {/* =================================================
             LOADING
         ================================================= */}
 
         {loading && (
+
           <div className="dj-empty">
+
             <div className="dj-loading">
               Loading DJ sets...
             </div>
+
           </div>
+
         )}
+
 
         {/* =================================================
             EMPTY
@@ -695,23 +1079,30 @@ const DJSets = () => {
 
         {!loading &&
           filteredDJSets.length === 0 && (
+
             <div className="dj-empty">
 
               <div className="dj-empty-icon">
                 🎧
               </div>
 
+
               <h3>
                 No DJ sets found
               </h3>
 
+
               <p>
+
                 {search
                   ? "Try a different search."
                   : `No DJ bookings for ${selectedYear} yet.`}
+
               </p>
 
+
               {!search && (
+
                 <button
                   className="dj-add-btn"
                   onClick={
@@ -720,10 +1111,13 @@ const DJSets = () => {
                 >
                   ＋ Add DJ Set
                 </button>
+
               )}
 
             </div>
+
           )}
+
 
         {/* =================================================
             DJ CARDS
@@ -739,54 +1133,104 @@ const DJSets = () => {
 
                   const balance =
                     Number(
-                      dj.totalAmount || 0
+                      dj.totalAmount ||
+                      0
                     ) -
                     Number(
-                      dj.advanceAmount || 0
+                      dj.advanceAmount ||
+                      0
                     );
 
+
                   return (
+
                     <article
                       className="dj-card"
-                      key={dj._id}
+                      key={
+                        dj._id
+                      }
                     >
+
 
                       {/* IMAGE */}
 
-                    <div
-                      className="dj-image-wrapper"
-                      onClick={() => {
-                        if (dj.image) {
-                          setSelectedImage(
-                            getImageUrl(dj.image)
-                          );
-                        }
-                      }}
-                      title={
-                        dj.image
-                          ? "Click to view full image"
-                          : ""
-                      }
-                    >
-                      {dj.image ? (
-                        <img
-                          src={getImageUrl(dj.image)}
-                          alt={dj.djName}
-                          className="dj-image"
-                        />
-                      ) : (
-                        <div className="dj-image-placeholder">
-                          🎧
-                        </div>
-                      )}
+                      <div
+                        className="dj-image-wrapper"
+                        onClick={() => {
 
-                      {dj.image && (
-                        <div className="dj-image-overlay">
-                          <span>🔍</span>
-                          <span>View Photo</span>
-                        </div>
-                      )}
-                    </div>
+                          if (
+                            dj.image
+                          ) {
+
+                            setSelectedImage(
+                              getImageUrl(
+                                dj.image
+                              )
+                            );
+
+                          }
+
+                        }}
+                        title={
+                          dj.image
+                            ? "Click to view full image"
+                            : ""
+                        }
+                      >
+
+                        {dj.image ? (
+
+                          <img
+                            src={
+                              getImageUrl(
+                                dj.image
+                              )
+                            }
+                            alt={
+                              dj.djName
+                            }
+                            className="dj-image"
+                            onError={(event) => {
+
+                              console.error(
+                                "DJ IMAGE LOAD ERROR:",
+                                event.currentTarget.src
+                              );
+
+
+                              event.currentTarget.style.display =
+                                "none";
+
+                            }}
+                          />
+
+                        ) : (
+
+                          <div className="dj-image-placeholder">
+                            🎧
+                          </div>
+
+                        )}
+
+
+                        {dj.image && (
+
+                          <div className="dj-image-overlay">
+
+                            <span>
+                              🔍
+                            </span>
+
+                            <span>
+                              View Photo
+                            </span>
+
+                          </div>
+
+                        )}
+
+                      </div>
+
 
                       {/* CONTENT */}
 
@@ -797,12 +1241,16 @@ const DJSets = () => {
                           <div>
 
                             <h3>
-                              {dj.djName}
+                              {
+                                dj.djName
+                              }
                             </h3>
+
 
                             <div className="dj-location">
                               📍 {dj.city}
                             </div>
+
 
                             <div className="dj-mobile">
                               📱 {dj.mobile}
@@ -810,44 +1258,62 @@ const DJSets = () => {
 
                           </div>
 
+
                           <span className="dj-year-tag">
-                            {dj.festivalYear}
+                            {
+                              dj.festivalYear
+                            }
                           </span>
 
                         </div>
+
 
                         {/* MONEY */}
 
                         <div className="dj-money">
 
                           <div>
+
                             <small>
                               TOTAL
                             </small>
 
+
                             <strong>
-                              {money(
-                                dj.totalAmount
-                              )}
+                              {
+                                money(
+                                  dj.totalAmount
+                                )
+                              }
                             </strong>
+
                           </div>
 
+
                           <div>
+
                             <small>
                               ADVANCE
                             </small>
 
+
                             <strong>
-                              {money(
-                                dj.advanceAmount
-                              )}
+                              {
+                                money(
+                                  dj.advanceAmount
+                                )
+                              }
                             </strong>
+
                           </div>
 
+
                           <div>
+
                             <small>
                               BALANCE
                             </small>
+
 
                             <strong
                               className={
@@ -856,24 +1322,34 @@ const DJSets = () => {
                                   : "balance-clear"
                               }
                             >
-                              {money(
-                                balance
-                              )}
+                              {
+                                money(
+                                  balance
+                                )
+                              }
                             </strong>
+
                           </div>
 
                         </div>
+
 
                         {/* FOOTER */}
 
                         <div className="dj-card-footer">
 
                           <span>
+
                             Added{" "}
-                            {formatDate(
-                              dj.createdAt
-                            )}
+
+                            {
+                              formatDate(
+                                dj.createdAt
+                              )
+                            }
+
                           </span>
+
 
                           <div className="dj-actions">
 
@@ -887,6 +1363,7 @@ const DJSets = () => {
                             >
                               ✏ Edit
                             </button>
+
 
                             <button
                               className="dj-delete-btn"
@@ -906,14 +1383,18 @@ const DJSets = () => {
                       </div>
 
                     </article>
+
                   );
+
                 }
               )}
 
             </div>
+
           )}
 
       </section>
+
 
       {/* =================================================
           ADD DJ MODAL
@@ -929,7 +1410,9 @@ const DJSets = () => {
               event.target ===
               event.currentTarget
             ) {
+
               closeModal();
+
             }
 
           }}
@@ -937,42 +1420,58 @@ const DJSets = () => {
 
           <div className="dj-modal">
 
+
             <div className="dj-modal-header">
 
               <div>
+
                 <div className="dj-eyebrow">
                   {selectedYear} BOOKINGS
                 </div>
+
 
                 <h2>
                   Add DJ Set
                 </h2>
 
+
                 <p>
                   Enter the DJ booking details.
                 </p>
+
               </div>
+
 
               <button
                 className="dj-modal-close"
-                onClick={closeModal}
+                onClick={
+                  closeModal
+                }
+                disabled={
+                  saving
+                }
               >
                 ×
               </button>
 
             </div>
 
+
             <form
-              onSubmit={handleSubmit}
+              onSubmit={
+                handleSubmit
+              }
             >
 
               <div className="dj-form-grid">
+
 
                 <div className="dj-field">
 
                   <label>
                     DJ Name *
                   </label>
+
 
                   <input
                     name="djName"
@@ -983,15 +1482,18 @@ const DJSets = () => {
                       handleChange
                     }
                     placeholder="Enter DJ name"
+                    required
                   />
 
                 </div>
+
 
                 <div className="dj-field">
 
                   <label>
                     City *
                   </label>
+
 
                   <input
                     name="city"
@@ -1002,15 +1504,18 @@ const DJSets = () => {
                       handleChange
                     }
                     placeholder="Enter city"
+                    required
                   />
 
                 </div>
+
 
                 <div className="dj-field">
 
                   <label>
                     Mobile Number *
                   </label>
+
 
                   <input
                     name="mobile"
@@ -1021,16 +1526,20 @@ const DJSets = () => {
                       handleChange
                     }
                     maxLength={10}
+                    inputMode="numeric"
                     placeholder="10-digit mobile"
+                    required
                   />
 
                 </div>
+
 
                 <div className="dj-field">
 
                   <label>
                     Total Amount *
                   </label>
+
 
                   <input
                     type="number"
@@ -1043,15 +1552,18 @@ const DJSets = () => {
                     }
                     min="0"
                     placeholder="₹ Total amount"
+                    required
                   />
 
                 </div>
+
 
                 <div className="dj-field">
 
                   <label>
                     Advance Amount *
                   </label>
+
 
                   <input
                     type="number"
@@ -1064,15 +1576,18 @@ const DJSets = () => {
                     }
                     min="0"
                     placeholder="₹ Advance"
+                    required
                   />
 
                 </div>
+
 
                 <div className="dj-field">
 
                   <label>
                     DJ Photo
                   </label>
+
 
                   <input
                     type="file"
@@ -1087,58 +1602,86 @@ const DJSets = () => {
 
               </div>
 
+
               {/* PREVIEW */}
 
               <div className="dj-form-summary">
 
                 <div>
+
                   <span>
                     Festival Year
                   </span>
 
+
                   <strong>
-                    {selectedYear}
+                    {
+                      selectedYear
+                    }
                   </strong>
+
                 </div>
 
+
                 <div>
+
                   <span>
                     Balance
                   </span>
 
+
                   <strong>
-                    {money(
-                      Number(
-                        form.totalAmount || 0
-                      ) -
+
+                    {
+                      money(
                         Number(
-                          form.advanceAmount || 0
+                          form.totalAmount ||
+                          0
+                        ) -
+                        Number(
+                          form.advanceAmount ||
+                          0
                         )
-                    )}
+                      )
+                    }
+
                   </strong>
+
                 </div>
 
               </div>
+
 
               <div className="dj-modal-actions">
 
                 <button
                   type="button"
                   className="dj-cancel-btn"
-                  onClick={closeModal}
-                  disabled={saving}
+                  onClick={
+                    closeModal
+                  }
+                  disabled={
+                    saving
+                  }
                 >
                   Cancel
                 </button>
 
+
                 <button
                   type="submit"
                   className="dj-save-btn"
-                  disabled={saving}
+                  disabled={
+                    saving
+                  }
                 >
-                  {saving
-                    ? "Saving..."
-                    : "Save DJ Set"}
+
+                  {
+                    saving
+                      ? "Saving..."
+                      : "Save DJ Set"
+                  }
+
                 </button>
 
               </div>
@@ -1148,69 +1691,91 @@ const DJSets = () => {
           </div>
 
         </div>
+
       )}
 
+
       {/* =================================================
-    IMAGE PREVIEW MODAL
-================================================= */}
+          IMAGE PREVIEW MODAL
+      ================================================= */}
 
-{selectedImage && (
-  <div
-    className="dj-photo-overlay"
-    onClick={(event) => {
-      if (
-        event.target ===
-        event.currentTarget
-      ) {
-        setSelectedImage(null);
-      }
-    }}
-  >
+      {selectedImage && (
 
-    <div className="dj-photo-viewer">
+        <div
+          className="dj-photo-overlay"
+          onClick={(event) => {
 
-      <button
-        className="dj-photo-close"
-        onClick={() =>
-          setSelectedImage(null)
-        }
-      >
-        ×
-      </button>
+            if (
+              event.target ===
+              event.currentTarget
+            ) {
 
-      <img
-        src={selectedImage}
-        alt="DJ Full Preview"
-        className="dj-full-image"
-      />
+              setSelectedImage(
+                null
+              );
 
-      <div className="dj-photo-actions">
+            }
 
-        <a
-          href={selectedImage}
-          download
-          target="_blank"
-          rel="noopener noreferrer"
-          className="dj-download-btn"
+          }}
         >
-          ⬇ Download Photo
-        </a>
 
-        <a
-          href={selectedImage}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="dj-open-btn"
-        >
-          ↗ Open Original
-        </a>
+          <div className="dj-photo-viewer">
 
-      </div>
+            <button
+              className="dj-photo-close"
+              onClick={() =>
+                setSelectedImage(
+                  null
+                )
+              }
+            >
+              ×
+            </button>
 
-    </div>
 
-  </div>
-)}
+            <img
+              src={
+                selectedImage
+              }
+              alt="DJ Full Preview"
+              className="dj-full-image"
+            />
+
+
+            <div className="dj-photo-actions">
+
+              <a
+                href={
+                  selectedImage
+                }
+                download
+                target="_blank"
+                rel="noopener noreferrer"
+                className="dj-download-btn"
+              >
+                ⬇ Download Photo
+              </a>
+
+
+              <a
+                href={
+                  selectedImage
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="dj-open-btn"
+              >
+                ↗ Open Original
+              </a>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      )}
+
 
       {/* =================================================
           STYLES
@@ -1222,205 +1787,181 @@ const DJSets = () => {
           box-sizing: border-box;
         }
 
+
         /* =====================================================
-   PHOTO CLICK / PREVIEW
-===================================================== */
+           PHOTO CLICK / PREVIEW
+        ===================================================== */
 
-            .dj-image-wrapper {
-              position: relative;
-              width: 180px;
-              height: 100%;
-              min-height: 260px;
-              background: #19131d;
-              overflow: hidden;
-              cursor: pointer;
-            }
+        .dj-image-wrapper {
+          position: relative;
+          width: 180px;
+          height: 100%;
+          min-height: 260px;
+          background: #19131d;
+          overflow: hidden;
+          cursor: pointer;
+        }
 
-            .dj-image {
-              width: 100%;
-              height: 100%;
-              min-height: 260px;
-              object-fit: cover;
-              display: block;
-              transition: transform 0.3s ease;
-            }
 
-            .dj-image-wrapper:hover .dj-image {
-              transform: scale(1.04);
-            }
+        .dj-image {
+          width: 100%;
+          height: 100%;
+          min-height: 260px;
+          object-fit: cover;
+          display: block;
+          transition: transform 0.3s ease;
+        }
 
-            .dj-image-overlay {
-              position: absolute;
-              inset: 0;
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              justify-content: center;
-              gap: 5px;
-              background: rgba(0, 0, 0, 0.48);
-              color: white;
-              opacity: 0;
-              transition: opacity 0.25s ease;
-              font-size: 12px;
-              font-weight: 700;
-            }
 
-            .dj-image-wrapper:hover .dj-image-overlay {
-              opacity: 1;
-            }
+        .dj-image-wrapper:hover .dj-image {
+          transform: scale(1.04);
+        }
 
-            .dj-image-overlay span:first-child {
-              font-size: 28px;
-            }
 
-            /* =====================================================
-              FULL SCREEN PHOTO VIEWER
-            ===================================================== */
+        .dj-image-overlay {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 5px;
+          background: rgba(0, 0, 0, 0.48);
+          color: white;
+          opacity: 0;
+          transition: opacity 0.25s ease;
+          font-size: 12px;
+          font-weight: 700;
+        }
 
-            .dj-photo-overlay {
-              position: fixed;
-              inset: 0;
-              z-index: 10000;
 
-              display: flex;
-              align-items: center;
-              justify-content: center;
+        .dj-image-wrapper:hover .dj-image-overlay {
+          opacity: 1;
+        }
 
-              padding: 30px;
 
-              background: rgba(
-                0,
-                0,
-                0,
-                0.88
-              );
+        .dj-image-overlay span:first-child {
+          font-size: 28px;
+        }
 
-              backdrop-filter: blur(10px);
-            }
 
-            .dj-photo-viewer {
-              position: relative;
+        /* =====================================================
+           FULL SCREEN PHOTO VIEWER
+        ===================================================== */
 
-              width: min(
-                900px,
-                95vw
-              );
+        .dj-photo-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 10000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 30px;
+          background: rgba(0, 0, 0, 0.88);
+          backdrop-filter: blur(10px);
+        }
 
-              max-height: 92vh;
 
-              display: flex;
-              flex-direction: column;
-              align-items: center;
+        .dj-photo-viewer {
+          position: relative;
+          width: min(900px, 95vw);
+          max-height: 92vh;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 20px;
+          border: 1px solid #3b303f;
+          border-radius: 18px;
+          background: #110c15;
+          box-shadow:
+            0 30px 100px
+            rgba(0, 0, 0, 0.7);
+        }
 
-              padding: 20px;
 
-              border: 1px solid #3b303f;
-              border-radius: 18px;
+        .dj-full-image {
+          display: block;
+          max-width: 100%;
+          max-height: 72vh;
+          object-fit: contain;
+          border-radius: 10px;
+        }
 
-              background: #110c15;
 
-              box-shadow:
-                0 30px 100px
-                rgba(0, 0, 0, 0.7);
-            }
+        .dj-photo-close {
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          z-index: 2;
+          width: 40px;
+          height: 40px;
+          border: 1px solid #514451;
+          border-radius: 10px;
+          background: rgba(20, 15, 25, 0.9);
+          color: white;
+          font-size: 27px;
+          cursor: pointer;
+        }
 
-            .dj-full-image {
-              display: block;
 
-              max-width: 100%;
-              max-height: 72vh;
+        .dj-photo-close:hover {
+          background: #2a1c20;
+          color: #ff7777;
+        }
 
-              object-fit: contain;
 
-              border-radius: 10px;
-            }
+        .dj-photo-actions {
+          display: flex;
+          gap: 10px;
+          margin-top: 18px;
+        }
 
-            .dj-photo-close {
-              position: absolute;
 
-              top: 12px;
-              right: 12px;
+        .dj-download-btn,
+        .dj-open-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 11px 18px;
+          border-radius: 10px;
+          text-decoration: none;
+          font-size: 13px;
+          font-weight: 800;
+          cursor: pointer;
+        }
 
-              z-index: 2;
 
-              width: 40px;
-              height: 40px;
+        .dj-download-btn {
+          background: linear-gradient(
+            135deg,
+            #ffd45b,
+            #e8aa22
+          );
+          color: #171009;
+        }
 
-              border: 1px solid #514451;
-              border-radius: 10px;
 
-              background: rgba(
-                20,
-                15,
-                25,
-                0.9
-              );
+        .dj-open-btn {
+          border: 1px solid #3c323f;
+          background: #19121e;
+          color: #c8bfce;
+        }
 
-              color: white;
 
-              font-size: 27px;
+        .dj-download-btn:hover {
+          transform: translateY(-1px);
+        }
 
-              cursor: pointer;
-            }
 
-            .dj-photo-close:hover {
-              background: #2a1c20;
-              color: #ff7777;
-            }
+        .dj-open-btn:hover {
+          border-color: #80662c;
+          color: #f4bd38;
+        }
 
-            .dj-photo-actions {
-              display: flex;
 
-              gap: 10px;
-
-              margin-top: 18px;
-            }
-
-            .dj-download-btn,
-            .dj-open-btn {
-              display: inline-flex;
-
-              align-items: center;
-              justify-content: center;
-
-              padding: 11px 18px;
-
-              border-radius: 10px;
-
-              text-decoration: none;
-
-              font-size: 13px;
-              font-weight: 800;
-
-              cursor: pointer;
-            }
-
-            .dj-download-btn {
-              background: linear-gradient(
-                135deg,
-                #ffd45b,
-                #e8aa22
-              );
-
-              color: #171009;
-            }
-
-            .dj-open-btn {
-              border: 1px solid #3c323f;
-
-              background: #19121e;
-
-              color: #c8bfce;
-            }
-
-            .dj-download-btn:hover {
-              transform: translateY(-1px);
-            }
-
-            .dj-open-btn:hover {
-              border-color: #80662c;
-              color: #f4bd38;
-            }
+        /* =====================================================
+           PAGE
+        ===================================================== */
 
         .dj-page {
           width: 100%;
@@ -1429,7 +1970,10 @@ const DJSets = () => {
           color: #f8f5ff;
         }
 
-        /* HEADER */
+
+        /* =====================================================
+           HEADER
+        ===================================================== */
 
         .dj-header {
           display: flex;
@@ -1439,6 +1983,7 @@ const DJSets = () => {
           margin-bottom: 28px;
         }
 
+
         .dj-eyebrow {
           color: #f4bd38;
           font-size: 11px;
@@ -1447,6 +1992,7 @@ const DJSets = () => {
           margin-bottom: 8px;
         }
 
+
         .dj-header h1 {
           margin: 0;
           font-size: 46px;
@@ -1454,11 +2000,13 @@ const DJSets = () => {
           font-weight: 800;
         }
 
+
         .dj-header p {
           margin: 10px 0 0;
           color: #a59caf;
           font-size: 16px;
         }
+
 
         .dj-add-btn {
           border: none;
@@ -1480,6 +2028,7 @@ const DJSets = () => {
           white-space: nowrap;
         }
 
+
         .dj-add-btn:hover {
           transform: translateY(-2px);
           box-shadow:
@@ -1487,11 +2036,15 @@ const DJSets = () => {
             rgba(236, 178, 42, 0.28);
         }
 
+
         .dj-add-btn span {
           font-size: 18px;
         }
 
-        /* YEAR */
+
+        /* =====================================================
+           YEAR
+        ===================================================== */
 
         .dj-year-box {
           display: flex;
@@ -1506,12 +2059,14 @@ const DJSets = () => {
           background: #100c15;
         }
 
+
         .dj-year-box span {
           color: #7d7387;
           font-size: 10px;
           font-weight: 800;
           letter-spacing: 1.5px;
         }
+
 
         .dj-year-box select {
           border: 1px solid #3a3040;
@@ -1523,7 +2078,10 @@ const DJSets = () => {
           font-weight: 700;
         }
 
-        /* STATS */
+
+        /* =====================================================
+           STATS
+        ===================================================== */
 
         .dj-stats {
           display: grid;
@@ -1532,6 +2090,7 @@ const DJSets = () => {
           gap: 16px;
           margin-bottom: 22px;
         }
+
 
         .dj-stat-card {
           min-width: 0;
@@ -1549,6 +2108,7 @@ const DJSets = () => {
           gap: 16px;
         }
 
+
         .dj-stat-icon {
           width: 52px;
           height: 52px;
@@ -1563,6 +2123,7 @@ const DJSets = () => {
           font-weight: 800;
         }
 
+
         .dj-stat-card small {
           display: block;
           color: #8b7e95;
@@ -1572,11 +2133,13 @@ const DJSets = () => {
           margin-bottom: 6px;
         }
 
+
         .dj-stat-card strong {
           display: block;
           font-size: 27px;
           line-height: 1.1;
         }
+
 
         .dj-stat-card span {
           display: block;
@@ -1585,7 +2148,10 @@ const DJSets = () => {
           font-size: 12px;
         }
 
-        /* SEARCH */
+
+        /* =====================================================
+           SEARCH
+        ===================================================== */
 
         .dj-search-row {
           display: flex;
@@ -1593,6 +2159,7 @@ const DJSets = () => {
           gap: 15px;
           margin-bottom: 20px;
         }
+
 
         .dj-search {
           flex: 1;
@@ -1606,9 +2173,11 @@ const DJSets = () => {
           background: #100c15;
         }
 
+
         .dj-search span {
           font-size: 18px;
         }
+
 
         .dj-search input {
           flex: 1;
@@ -1620,9 +2189,11 @@ const DJSets = () => {
           font-size: 14px;
         }
 
+
         .dj-search input::placeholder {
           color: #71677a;
         }
+
 
         .dj-search button {
           border: none;
@@ -1632,13 +2203,17 @@ const DJSets = () => {
           cursor: pointer;
         }
 
+
         .dj-count {
           color: #8c8095;
           white-space: nowrap;
           font-size: 13px;
         }
 
-        /* RECORD */
+
+        /* =====================================================
+           RECORD
+        ===================================================== */
 
         .dj-record-section {
           border: 1px solid #2c2533;
@@ -1646,6 +2221,7 @@ const DJSets = () => {
           overflow: hidden;
           background: #0e0a12;
         }
+
 
         .dj-record-header {
           padding: 25px 28px;
@@ -1655,10 +2231,12 @@ const DJSets = () => {
           border-bottom: 1px solid #28222e;
         }
 
+
         .dj-record-header h2 {
           margin: 0;
           font-size: 28px;
         }
+
 
         .dj-record-header p {
           margin: 8px 0 0;
@@ -1666,13 +2244,17 @@ const DJSets = () => {
           font-size: 13px;
         }
 
+
         .dj-record-total {
           color: #f5bd3c;
           font-size: 20px;
           font-weight: 800;
         }
 
-        /* GRID */
+
+        /* =====================================================
+           GRID
+        ===================================================== */
 
         .dj-grid {
           display: grid;
@@ -1682,12 +2264,16 @@ const DJSets = () => {
           padding: 20px;
         }
 
-        /* CARD */
+
+        /* =====================================================
+           CARD
+        ===================================================== */
 
         .dj-card {
           min-width: 0;
           display: grid;
-          grid-template-columns: 180px minmax(0, 1fr);
+          grid-template-columns:
+            180px minmax(0, 1fr);
           overflow: hidden;
           border: 1px solid #2d2634;
           border-radius: 18px;
@@ -1700,26 +2286,12 @@ const DJSets = () => {
           transition: 0.2s ease;
         }
 
+
         .dj-card:hover {
           border-color: #72551e;
           transform: translateY(-2px);
         }
 
-        .dj-image-wrapper {
-          width: 180px;
-          height: 100%;
-          min-height: 260px;
-          background: #19131d;
-          overflow: hidden;
-        }
-
-        .dj-image {
-          width: 100%;
-          height: 100%;
-          min-height: 260px;
-          object-fit: cover;
-          display: block;
-        }
 
         .dj-image-placeholder {
           width: 100%;
@@ -1732,12 +2304,14 @@ const DJSets = () => {
           color: #806b37;
         }
 
+
         .dj-card-content {
           min-width: 0;
           padding: 20px;
           display: flex;
           flex-direction: column;
         }
+
 
         .dj-card-top {
           display: flex;
@@ -1746,12 +2320,14 @@ const DJSets = () => {
           gap: 10px;
         }
 
+
         .dj-card-top h3 {
           margin: 0;
           font-size: 23px;
           font-weight: 800;
           word-break: break-word;
         }
+
 
         .dj-location,
         .dj-mobile {
@@ -1760,6 +2336,7 @@ const DJSets = () => {
           font-size: 13px;
           word-break: break-word;
         }
+
 
         .dj-year-tag {
           flex-shrink: 0;
@@ -1771,7 +2348,10 @@ const DJSets = () => {
           font-weight: 800;
         }
 
-        /* MONEY */
+
+        /* =====================================================
+           MONEY
+        ===================================================== */
 
         .dj-money {
           display: grid;
@@ -1782,6 +2362,7 @@ const DJSets = () => {
           padding-top: 22px;
         }
 
+
         .dj-money > div {
           min-width: 0;
           padding: 10px;
@@ -1789,6 +2370,7 @@ const DJSets = () => {
           background: #0a0710;
           border: 1px solid #211b27;
         }
+
 
         .dj-money small {
           display: block;
@@ -1799,21 +2381,27 @@ const DJSets = () => {
           margin-bottom: 5px;
         }
 
+
         .dj-money strong {
           display: block;
           font-size: 14px;
           white-space: nowrap;
         }
 
+
         .balance-due {
           color: #f4bd38;
         }
+
 
         .balance-clear {
           color: #6bd58b;
         }
 
-        /* FOOTER */
+
+        /* =====================================================
+           FOOTER
+        ===================================================== */
 
         .dj-card-footer {
           display: flex;
@@ -1825,17 +2413,20 @@ const DJSets = () => {
           border-top: 1px solid #29232e;
         }
 
+
         .dj-card-footer > span {
           color: #6f6678;
           font-size: 11px;
           white-space: nowrap;
         }
 
+
         .dj-actions {
           display: flex;
           gap: 7px;
           flex-shrink: 0;
         }
+
 
         .dj-actions button {
           border-radius: 8px;
@@ -1846,16 +2437,19 @@ const DJSets = () => {
           transition: 0.2s ease;
         }
 
+
         .dj-edit-btn {
           border: 1px solid #3a303f;
           background: #17111c;
           color: #c8bfce;
         }
 
+
         .dj-edit-btn:hover {
           border-color: #80662c;
           color: #f4bd38;
         }
+
 
         .dj-delete-btn {
           border: 1px solid #5a2727;
@@ -1863,12 +2457,16 @@ const DJSets = () => {
           color: #ff7777;
         }
 
+
         .dj-delete-btn:hover {
           background: #48191b;
           border-color: #c74747;
         }
 
-        /* EMPTY */
+
+        /* =====================================================
+           EMPTY
+        ===================================================== */
 
         .dj-empty {
           min-height: 300px;
@@ -1879,6 +2477,7 @@ const DJSets = () => {
           justify-content: center;
           text-align: center;
         }
+
 
         .dj-empty-icon {
           width: 65px;
@@ -1892,21 +2491,27 @@ const DJSets = () => {
           margin-bottom: 15px;
         }
 
+
         .dj-empty h3 {
           margin: 0;
           font-size: 20px;
         }
+
 
         .dj-empty p {
           color: #776d81;
           margin: 8px 0 20px;
         }
 
+
         .dj-loading {
           color: #a99eae;
         }
 
-        /* MODAL */
+
+        /* =====================================================
+           MODAL
+        ===================================================== */
 
         .dj-modal-overlay {
           position: fixed;
@@ -1916,20 +2521,13 @@ const DJSets = () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: rgba(
-            0,
-            0,
-            0,
-            0.76
-          );
+          background: rgba(0, 0, 0, 0.76);
           backdrop-filter: blur(7px);
         }
 
+
         .dj-modal {
-          width: min(
-            760px,
-            100%
-          );
+          width: min(760px, 100%);
           max-height: 90vh;
           overflow-y: auto;
           border: 1px solid #3b303f;
@@ -1940,6 +2538,7 @@ const DJSets = () => {
             rgba(0, 0, 0, 0.6);
         }
 
+
         .dj-modal-header {
           display: flex;
           justify-content: space-between;
@@ -1948,16 +2547,19 @@ const DJSets = () => {
           border-bottom: 1px solid #2c2532;
         }
 
+
         .dj-modal-header h2 {
           margin: 0;
           font-size: 27px;
         }
+
 
         .dj-modal-header p {
           margin: 7px 0 0;
           color: #7e7485;
           font-size: 13px;
         }
+
 
         .dj-modal-close {
           width: 38px;
@@ -1970,9 +2572,11 @@ const DJSets = () => {
           cursor: pointer;
         }
 
+
         .dj-modal form {
           padding: 25px;
         }
+
 
         .dj-form-grid {
           display: grid;
@@ -1981,9 +2585,11 @@ const DJSets = () => {
           gap: 18px;
         }
 
+
         .dj-field {
           min-width: 0;
         }
+
 
         .dj-field label {
           display: block;
@@ -1992,6 +2598,7 @@ const DJSets = () => {
           font-size: 12px;
           font-weight: 700;
         }
+
 
         .dj-field input {
           width: 100%;
@@ -2004,9 +2611,11 @@ const DJSets = () => {
           outline: none;
         }
 
+
         .dj-field input:focus {
           border-color: #b4862b;
         }
+
 
         .dj-form-summary {
           display: grid;
@@ -2016,12 +2625,14 @@ const DJSets = () => {
           margin-top: 20px;
         }
 
+
         .dj-form-summary > div {
           padding: 15px;
           border: 1px solid #2b2431;
           border-radius: 12px;
           background: #0c0910;
         }
+
 
         .dj-form-summary span {
           display: block;
@@ -2030,10 +2641,12 @@ const DJSets = () => {
           margin-bottom: 5px;
         }
 
+
         .dj-form-summary strong {
           color: #f5bd3c;
           font-size: 20px;
         }
+
 
         .dj-modal-actions {
           display: flex;
@@ -2041,6 +2654,7 @@ const DJSets = () => {
           gap: 10px;
           margin-top: 25px;
         }
+
 
         .dj-cancel-btn,
         .dj-save-btn {
@@ -2050,11 +2664,13 @@ const DJSets = () => {
           cursor: pointer;
         }
 
+
         .dj-cancel-btn {
           border: 1px solid #3b313f;
           background: #17111c;
           color: #b5abb9;
         }
+
 
         .dj-save-btn {
           border: none;
@@ -2066,13 +2682,17 @@ const DJSets = () => {
           color: #171009;
         }
 
+
         .dj-save-btn:disabled,
         .dj-cancel-btn:disabled {
           opacity: 0.6;
           cursor: not-allowed;
         }
 
-        /* RESPONSIVE */
+
+        /* =====================================================
+           RESPONSIVE
+        ===================================================== */
 
         @media (max-width: 1100px) {
 
@@ -2081,88 +2701,15 @@ const DJSets = () => {
               repeat(2, 1fr);
           }
 
+
           .dj-grid {
             grid-template-columns: 1fr;
           }
 
         }
+
 
         @media (max-width: 700px) {
-
-
-        .dj-image-wrapper {
-          width: 100%;
-          height: 240px;
-          min-height: 0;
-        }
-
-        .dj-image {
-          min-height: 0;
-        }
-
-        .dj-photo-overlay {
-          padding: 10px;
-        }
-
-        .dj-photo-viewer {
-          width: 100%;
-          padding: 12px;
-        }
-
-        .dj-full-image {
-          max-height: 75vh;
-        }
-
-        .dj-photo-actions {
-          width: 100%;
-          flex-direction: column;
-        }
-
-        .dj-download-btn,
-        .dj-open-btn {
-          width: 100%;
-        }
-          .dj-page {
-            padding: 25px 16px 50px;
-          }
-
-          .dj-header {
-            flex-direction: column;
-            align-items: flex-start;
-          }
-
-          .dj-header h1 {
-            font-size: 34px;
-          }
-
-          .dj-year-box {
-            margin-left: 0;
-          }
-
-          .dj-stats {
-            grid-template-columns: 1fr;
-          }
-
-          .dj-search-row {
-            flex-direction: column;
-            align-items: stretch;
-          }
-
-          .dj-count {
-            text-align: right;
-          }
-
-          .dj-record-header {
-            padding: 20px;
-          }
-
-          .dj-grid {
-            padding: 12px;
-          }
-
-          .dj-card {
-            grid-template-columns: 1fr;
-          }
 
           .dj-image-wrapper {
             width: 100%;
@@ -2170,34 +2717,134 @@ const DJSets = () => {
             min-height: 0;
           }
 
+
           .dj-image {
             min-height: 0;
           }
+
+
+          .dj-photo-overlay {
+            padding: 10px;
+          }
+
+
+          .dj-photo-viewer {
+            width: 100%;
+            padding: 12px;
+          }
+
+
+          .dj-full-image {
+            max-height: 75vh;
+          }
+
+
+          .dj-photo-actions {
+            width: 100%;
+            flex-direction: column;
+          }
+
+
+          .dj-download-btn,
+          .dj-open-btn {
+            width: 100%;
+          }
+
+
+          .dj-page {
+            padding: 25px 16px 50px;
+          }
+
+
+          .dj-header {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+
+
+          .dj-header h1 {
+            font-size: 34px;
+          }
+
+
+          .dj-year-box {
+            margin-left: 0;
+          }
+
+
+          .dj-stats {
+            grid-template-columns: 1fr;
+          }
+
+
+          .dj-search-row {
+            flex-direction: column;
+            align-items: stretch;
+          }
+
+
+          .dj-count {
+            text-align: right;
+          }
+
+
+          .dj-record-header {
+            padding: 20px;
+          }
+
+
+          .dj-grid {
+            padding: 12px;
+          }
+
+
+          .dj-card {
+            grid-template-columns: 1fr;
+          }
+
+
+          .dj-image-wrapper {
+            width: 100%;
+            height: 240px;
+            min-height: 0;
+          }
+
+
+          .dj-image {
+            min-height: 0;
+          }
+
 
           .dj-image-placeholder {
             min-height: 0;
           }
 
+
           .dj-form-grid {
             grid-template-columns: 1fr;
           }
+
 
           .dj-modal-overlay {
             padding: 12px;
           }
 
+
           .dj-modal {
             max-height: 95vh;
           }
+
 
           .dj-card-footer {
             align-items: flex-start;
             flex-direction: column;
           }
 
+
           .dj-actions {
             width: 100%;
           }
+
 
           .dj-actions button {
             flex: 1;
@@ -2208,7 +2855,10 @@ const DJSets = () => {
       `}</style>
 
     </div>
+
   );
+
 };
+
 
 export default DJSets;

@@ -4,19 +4,34 @@ import React, {
 } from "react";
 
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { getToken } from "../utils/api";
 
-const API_URL =
-  "http://localhost:5000/api";
+import { useAuth } from "../context/AuthContext";
+
+import {
+  getToken,
+  apiFetch,
+} from "../utils/api";
+
+
+// =====================================================
+// ADMIN
+// =====================================================
 
 function Admin() {
-  const navigate = useNavigate();
+
+  const navigate =
+    useNavigate();
+
 
   const {
     user,
     isAdmin,
   } = useAuth();
+
+
+  // =====================================================
+  // STATE
+  // =====================================================
 
   const [users, setUsers] =
     useState([]);
@@ -27,39 +42,61 @@ function Admin() {
   const [updatingId, setUpdatingId] =
     useState(null);
 
-  // ==========================================
+
+  // =====================================================
   // PASSWORD RESET STATE
-  // ==========================================
+  // =====================================================
 
-  const [showPasswordModal, setShowPasswordModal] =
-    useState(false);
-
-  const [selectedUser, setSelectedUser] =
-    useState(null);
-
-  const [newPassword, setNewPassword] =
-    useState("");
-
-  const [confirmPassword, setConfirmPassword] =
-    useState("");
-
-  const [passwordLoading, setPasswordLoading] =
-    useState(false);
+  const [
+    showPasswordModal,
+    setShowPasswordModal,
+  ] = useState(false);
 
 
-  // ==========================================
+  const [
+    selectedUser,
+    setSelectedUser,
+  ] = useState(null);
+
+
+  const [
+    newPassword,
+    setNewPassword,
+  ] = useState("");
+
+
+  const [
+    confirmPassword,
+    setConfirmPassword,
+  ] = useState("");
+
+
+  const [
+    passwordLoading,
+    setPasswordLoading,
+  ] = useState(false);
+
+
+  // =====================================================
   // CHECK ADMIN
-  // ==========================================
+  // =====================================================
 
   useEffect(() => {
+
     if (!user) {
+
       navigate("/login");
+
       return;
     }
 
+
     if (!isAdmin) {
+
       navigate("/dashboard");
+
     }
+
   }, [
     user,
     isAdmin,
@@ -67,69 +104,77 @@ function Admin() {
   ]);
 
 
-  // ==========================================
+  // =====================================================
   // FETCH USERS
-  // ==========================================
+  // =====================================================
 
   const fetchUsers = async () => {
+
     try {
+
       setLoading(true);
 
-      const token = getToken();
-
-      const response = await fetch(
-        `${API_URL}/users`,
-        {
-          headers: {
-            Authorization:
-              `Bearer ${token}`,
-          },
-        }
-      );
 
       const data =
-        await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.message ||
-          "Failed to fetch users"
+        await apiFetch(
+          "/api/users"
         );
-      }
+
+
+      console.log(
+        "FETCH USERS RESPONSE:",
+        data
+      );
+
 
       setUsers(
-        Array.isArray(data.users)
+        Array.isArray(data?.users)
           ? data.users
           : []
       );
 
+
     } catch (error) {
+
       console.error(
         "FETCH USERS ERROR:",
         error
       );
+
 
       alert(
         error.message ||
         "Failed to load users."
       );
 
+
     } finally {
+
       setLoading(false);
+
     }
+
   };
 
 
+  // =====================================================
+  // LOAD USERS
+  // =====================================================
+
   useEffect(() => {
+
     if (isAdmin) {
+
       fetchUsers();
+
     }
+
   }, [isAdmin]);
 
 
-  // ==========================================
+  // =====================================================
   // CHANGE ROLE
-  // ==========================================
+  // =====================================================
 
   const changeRole = async (
     userId,
@@ -141,43 +186,49 @@ function Admin() {
         `Change this user to ${newRole}?`
       );
 
+
     if (!confirmed) {
+
       return;
+
     }
 
+
     try {
+
       setUpdatingId(userId);
 
-      const token = getToken();
-
-      const response = await fetch(
-        `${API_URL}/users/${userId}/role`,
-        {
-          method: "PUT",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-
-            Authorization:
-              `Bearer ${token}`,
-          },
-
-          body: JSON.stringify({
-            role: newRole,
-          }),
-        }
-      );
 
       const data =
-        await response.json();
+        await apiFetch(
+          `/api/users/${userId}/role`,
+          {
+            method: "PUT",
 
-      if (!response.ok) {
+            body: JSON.stringify({
+              role: newRole,
+            }),
+          }
+        );
+
+
+      console.log(
+        "CHANGE ROLE RESPONSE:",
+        data
+      );
+
+
+      if (
+        data?.success === false
+      ) {
+
         throw new Error(
-          data.message ||
+          data?.message ||
           "Failed to change role"
         );
+
       }
+
 
       setUsers(
         (previous) =>
@@ -192,26 +243,37 @@ function Admin() {
           )
       );
 
+
     } catch (error) {
+
       console.error(
         "CHANGE ROLE ERROR:",
         error
       );
+
 
       alert(
         error.message ||
         "Failed to change role."
       );
 
+
+      // Restore data from server
+      await fetchUsers();
+
+
     } finally {
+
       setUpdatingId(null);
+
     }
+
   };
 
 
-  // ==========================================
+  // =====================================================
   // DELETE USER
-  // ==========================================
+  // =====================================================
 
   const deleteUser = async (
     userId,
@@ -223,36 +285,45 @@ function Admin() {
         `Delete ${userName}? This cannot be undone.`
       );
 
+
     if (!confirmed) {
+
       return;
+
     }
 
+
     try {
+
       setUpdatingId(userId);
 
-      const token = getToken();
-
-      const response = await fetch(
-        `${API_URL}/users/${userId}`,
-        {
-          method: "DELETE",
-
-          headers: {
-            Authorization:
-              `Bearer ${token}`,
-          },
-        }
-      );
 
       const data =
-        await response.json();
+        await apiFetch(
+          `/api/users/${userId}`,
+          {
+            method: "DELETE",
+          }
+        );
 
-      if (!response.ok) {
+
+      console.log(
+        "DELETE USER RESPONSE:",
+        data
+      );
+
+
+      if (
+        data?.success === false
+      ) {
+
         throw new Error(
-          data.message ||
+          data?.message ||
           "Failed to delete user"
         );
+
       }
+
 
       setUsers(
         (previous) =>
@@ -262,30 +333,44 @@ function Admin() {
           )
       );
 
+
+      alert(
+        data?.message ||
+        "User deleted successfully."
+      );
+
+
     } catch (error) {
+
       console.error(
         "DELETE USER ERROR:",
         error
       );
+
 
       alert(
         error.message ||
         "Failed to delete user."
       );
 
+
     } finally {
+
       setUpdatingId(null);
+
     }
+
   };
 
 
-  // ==========================================
+  // =====================================================
   // OPEN PASSWORD MODAL
-  // ==========================================
+  // =====================================================
 
   const openPasswordModal = (
     member
   ) => {
+
     setSelectedUser(member);
 
     setNewPassword("");
@@ -293,18 +378,22 @@ function Admin() {
     setConfirmPassword("");
 
     setShowPasswordModal(true);
+
   };
 
 
-  // ==========================================
+  // =====================================================
   // CLOSE PASSWORD MODAL
-  // ==========================================
+  // =====================================================
 
   const closePasswordModal = () => {
 
     if (passwordLoading) {
+
       return;
+
     }
+
 
     setShowPasswordModal(false);
 
@@ -313,94 +402,119 @@ function Admin() {
     setNewPassword("");
 
     setConfirmPassword("");
+
   };
 
 
-  // ==========================================
+  // =====================================================
   // RESET USER PASSWORD
-  // ==========================================
+  // =====================================================
 
   const resetUserPassword = async (
-    e
+    event
   ) => {
 
-    e.preventDefault();
+    event.preventDefault();
+
 
     if (!selectedUser) {
+
       return;
+
     }
 
+
     if (!newPassword) {
+
       alert(
         "Please enter a new password."
       );
+
       return;
+
     }
 
+
     if (newPassword.length < 6) {
+
       alert(
         "Password must be at least 6 characters."
       );
+
       return;
+
     }
+
 
     if (
       newPassword !==
       confirmPassword
     ) {
+
       alert(
         "Passwords do not match."
       );
+
       return;
+
     }
+
 
     const confirmed =
       window.confirm(
         `Change password for ${selectedUser.name}?`
       );
 
+
     if (!confirmed) {
+
       return;
+
     }
 
+
     try {
+
       setPasswordLoading(true);
 
-      const token = getToken();
-
-      const response = await fetch(
-        `${API_URL}/users/${selectedUser._id}/password`,
-        {
-          method: "PUT",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-
-            Authorization:
-              `Bearer ${token}`,
-          },
-
-          body: JSON.stringify({
-            password:
-              newPassword,
-          }),
-        }
-      );
 
       const data =
-        await response.json();
+        await apiFetch(
+          `/api/users/${selectedUser._id}/password`,
+          {
+            method: "PUT",
 
-      if (!response.ok) {
+            body: JSON.stringify({
+              password:
+                newPassword,
+            }),
+          }
+        );
+
+
+      console.log(
+        "RESET PASSWORD RESPONSE:",
+        data
+      );
+
+
+      if (
+        data?.success === false
+      ) {
+
         throw new Error(
-          data.message ||
+          data?.message ||
           "Failed to reset password."
         );
+
       }
 
+
       alert(
+        data?.message ||
         `Password changed successfully for ${selectedUser.name}.`
       );
+
 
       setShowPasswordModal(false);
 
@@ -410,60 +524,79 @@ function Admin() {
 
       setConfirmPassword("");
 
+
     } catch (error) {
+
       console.error(
         "RESET PASSWORD ERROR:",
         error
       );
+
 
       alert(
         error.message ||
         "Failed to reset password."
       );
 
+
     } finally {
+
       setPasswordLoading(false);
+
     }
+
   };
 
 
-  // ==========================================
+  // =====================================================
   // ROLE TEXT
-  // ==========================================
+  // =====================================================
 
   const roleLabel = (
     role
   ) => {
+
     if (role === "editor") {
+
       return "Editor";
+
     }
 
+
     return "Viewer";
+
   };
 
 
-  // ==========================================
+  // =====================================================
   // DATE
-  // ==========================================
+  // =====================================================
 
   const formatDate = (
     date
   ) => {
 
     if (!date) {
+
       return "-";
+
     }
+
 
     const parsed =
       new Date(date);
+
 
     if (
       Number.isNaN(
         parsed.getTime()
       )
     ) {
+
       return "-";
+
     }
+
 
     return parsed.toLocaleDateString(
       "en-IN",
@@ -473,24 +606,29 @@ function Admin() {
         year: "numeric",
       }
     );
+
   };
 
 
-  // ==========================================
+  // =====================================================
   // NOT LOGGED IN
-  // ==========================================
+  // =====================================================
 
   if (!user || !isAdmin) {
+
     return null;
+
   }
 
 
-  // ==========================================
+  // =====================================================
   // UI
-  // ==========================================
+  // =====================================================
 
   return (
+
     <div className="admin-page">
+
 
       {/* =====================================
           HEADER
@@ -504,9 +642,11 @@ function Admin() {
             ADMINISTRATION
           </div>
 
+
           <h1>
             Admin Dashboard
           </h1>
+
 
           <p>
             Manage registered members
@@ -521,6 +661,7 @@ function Admin() {
           <span>
             ADMIN
           </span>
+
 
           <strong>
             {user.name}
@@ -537,6 +678,7 @@ function Admin() {
 
       <div className="admin-stats">
 
+
         {/* REGISTERED MEMBERS */}
 
         <div className="admin-stat">
@@ -545,11 +687,13 @@ function Admin() {
             ♟
           </div>
 
+
           <div>
 
             <span>
               REGISTERED MEMBERS
             </span>
+
 
             <strong>
               {users.length}
@@ -568,11 +712,13 @@ function Admin() {
             👁
           </div>
 
+
           <div>
 
             <span>
               VIEWERS
             </span>
+
 
             <strong>
               {
@@ -597,11 +743,13 @@ function Admin() {
             ✏
           </div>
 
+
           <div>
 
             <span>
               EDITORS
             </span>
+
 
             <strong>
               {
@@ -634,11 +782,13 @@ function Admin() {
               ACCESS MANAGEMENT
             </div>
 
+
             <h2>
               Registered Members
             </h2>
 
           </div>
+
 
           <span>
             {users.length} users
@@ -650,7 +800,9 @@ function Admin() {
         {loading ? (
 
           <div className="admin-empty">
+
             Loading registered members...
+
           </div>
 
         ) : users.length === 0 ? (
@@ -661,9 +813,11 @@ function Admin() {
               ♟
             </div>
 
+
             <h3>
               No registered members
             </h3>
+
 
             <p>
               Registered users will appear here.
@@ -682,6 +836,7 @@ function Admin() {
                   className="admin-user-row"
                   key={member._id}
                 >
+
 
                   {/* NUMBER */}
 
@@ -709,6 +864,7 @@ function Admin() {
                       {member.name}
                     </strong>
 
+
                     <span>
                       {member.mobile}
                     </span>
@@ -723,6 +879,7 @@ function Admin() {
                     <span>
                       REGISTERED
                     </span>
+
 
                     <strong>
                       {formatDate(
@@ -756,10 +913,10 @@ function Admin() {
                         updatingId ===
                         member._id
                       }
-                      onChange={(e) =>
+                      onChange={(event) =>
                         changeRole(
                           member._id,
-                          e.target.value
+                          event.target.value
                         )
                       }
                     >
@@ -767,6 +924,7 @@ function Admin() {
                       <option value="viewer">
                         Viewer
                       </option>
+
 
                       <option value="editor">
                         Editor
@@ -784,7 +942,7 @@ function Admin() {
                     className="admin-password"
                     disabled={
                       updatingId ===
-                      member._id ||
+                        member._id ||
                       passwordLoading
                     }
                     onClick={() =>
@@ -805,7 +963,7 @@ function Admin() {
                     className="admin-delete"
                     disabled={
                       updatingId ===
-                      member._id ||
+                        member._id ||
                       passwordLoading
                     }
                     onClick={() =>
@@ -819,7 +977,9 @@ function Admin() {
                     🗑️
                   </button>
 
+
                 </div>
+
               )
             )}
 
@@ -840,13 +1000,16 @@ function Admin() {
           ℹ
         </div>
 
+
         <div>
 
           <strong>
             Access levels
           </strong>
 
+
           <p>
+
             <b>Viewer</b> can view festival
             information.{" "}
 
@@ -855,6 +1018,7 @@ function Admin() {
 
             Only the admin can change
             user permissions or passwords.
+
           </p>
 
         </div>
@@ -871,20 +1035,24 @@ function Admin() {
 
           <div
             className="admin-modal-overlay"
-            onMouseDown={(e) => {
+            onMouseDown={(event) => {
 
               if (
-                e.target ===
-                  e.currentTarget &&
+                event.target ===
+                  event.currentTarget &&
                 !passwordLoading
               ) {
+
                 closePasswordModal();
+
               }
 
             }}
           >
 
+
             <div className="admin-password-modal">
+
 
               {/* MODAL HEADER */}
 
@@ -896,9 +1064,11 @@ function Admin() {
                     ADMINISTRATION
                   </div>
 
+
                   <h2>
                     Change Password
                   </h2>
+
 
                   <p>
                     Update account password
@@ -933,6 +1103,7 @@ function Admin() {
                 }
               >
 
+
                 {/* SELECTED USER */}
 
                 <div className="admin-password-user">
@@ -940,6 +1111,7 @@ function Admin() {
                   <strong>
                     {selectedUser.name}
                   </strong>
+
 
                   <span>
                     {selectedUser.mobile}
@@ -956,12 +1128,13 @@ function Admin() {
                     New Password
                   </label>
 
+
                   <input
                     type="password"
                     value={newPassword}
-                    onChange={(e) =>
+                    onChange={(event) =>
                       setNewPassword(
-                        e.target.value
+                        event.target.value
                       )
                     }
                     placeholder="Enter new password"
@@ -984,12 +1157,13 @@ function Admin() {
                     Confirm Password
                   </label>
 
+
                   <input
                     type="password"
                     value={confirmPassword}
-                    onChange={(e) =>
+                    onChange={(event) =>
                       setConfirmPassword(
-                        e.target.value
+                        event.target.value
                       )
                     }
                     placeholder="Re-enter new password"
@@ -1037,12 +1211,15 @@ function Admin() {
                       passwordLoading
                     }
                   >
+
                     {passwordLoading
                       ? "Updating..."
                       : "Update Password"}
+
                   </button>
 
                 </div>
+
 
               </form>
 
@@ -1503,19 +1680,14 @@ function Admin() {
         }
 
 
-        /* =====================================
-           PASSWORD MODAL
-        ====================================== */
+        /* PASSWORD MODAL */
 
         .admin-modal-overlay {
           position: fixed;
-
           inset: 0;
-
           z-index: 9999;
 
           display: flex;
-
           align-items: center;
           justify-content: center;
 
@@ -1528,6 +1700,8 @@ function Admin() {
             blur(7px);
 
           box-sizing: border-box;
+
+          overflow-y: auto;
         }
 
 
@@ -1561,13 +1735,16 @@ function Admin() {
 
           from {
             opacity: 0;
+
             transform:
               translateY(10px)
               scale(0.98);
           }
 
+
           to {
             opacity: 1;
+
             transform:
               translateY(0)
               scale(1);
@@ -1859,9 +2036,7 @@ function Admin() {
         }
 
 
-        /* =====================================
-           TABLET
-        ====================================== */
+        /* TABLET */
 
         @media (max-width: 950px) {
 
@@ -1878,9 +2053,7 @@ function Admin() {
         }
 
 
-        /* =====================================
-           MOBILE
-        ====================================== */
+        /* MOBILE */
 
         @media (max-width: 700px) {
 
@@ -2127,6 +2300,7 @@ function Admin() {
 
           .admin-password {
             width: 30px;
+
             height: 30px;
 
             padding: 0;
@@ -2141,6 +2315,7 @@ function Admin() {
 
           .admin-delete {
             width: 30px;
+
             height: 30px;
 
             padding: 0;
@@ -2230,8 +2405,12 @@ function Admin() {
 
       `}</style>
 
+
     </div>
+
   );
+
 }
+
 
 export default Admin;

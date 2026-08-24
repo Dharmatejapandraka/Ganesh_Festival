@@ -1,31 +1,134 @@
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
 import { useFestival } from "../context/FestivalContext";
+
 import api from "../utils/api";
 
+
+// =====================================================
+// HOME / DASHBOARD
+// =====================================================
+
 function Home() {
-  const { currentYear } = useFestival();
 
-  const [donations, setDonations] = useState([]);
-  const [expenses, setExpenses] = useState([]);
-  const [committee, setCommittee] = useState([]);
-  const [villagers, setVillagers] = useState([]);
+  const { currentYear } =
+    useFestival();
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+
+  // =====================================================
+  // STATE
+  // =====================================================
+
+  const [
+    donations,
+    setDonations,
+  ] = useState([]);
+
+
+  const [
+    expenses,
+    setExpenses,
+  ] = useState([]);
+
+
+  const [
+    committee,
+    setCommittee,
+  ] = useState([]);
+
+
+  const [
+    villagers,
+    setVillagers,
+  ] = useState([]);
+
+
+  const [
+    loading,
+    setLoading,
+  ] = useState(true);
+
+
+  const [
+    error,
+    setError,
+  ] = useState("");
+
+
+  // =====================================================
+  // HELPER
+  // =====================================================
+
+  const extractList = (
+    response,
+    possibleKeys = []
+  ) => {
+
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+
+    for (
+      const key of possibleKeys
+    ) {
+
+      if (
+        Array.isArray(
+          response?.[key]
+        )
+      ) {
+
+        return response[key];
+
+      }
+
+    }
+
+
+    return [];
+
+  };
+
 
   // =====================================================
   // LOAD DASHBOARD DATA
   // =====================================================
 
   const loadDashboard = async () => {
+
     try {
+
       setLoading(true);
+
       setError("");
 
-      console.log("=================================");
-      console.log("LOADING DASHBOARD");
-      console.log("YEAR:", currentYear);
-      console.log("=================================");
+
+      console.log(
+        "================================="
+      );
+
+      console.log(
+        "LOADING DASHBOARD"
+      );
+
+      console.log(
+        "YEAR:",
+        currentYear
+      );
+
+      console.log(
+        "================================="
+      );
+
+
+      // =================================================
+      // API REQUESTS
+      // =================================================
 
       const [
         donationsResponse,
@@ -33,283 +136,332 @@ function Home() {
         committeeResponse,
         villagersResponse,
       ] = await Promise.all([
-        api.get(`/donations?year=${currentYear}`),
-        api.get(`/expenses?year=${currentYear}`),
-        api.get(`/committee?year=${currentYear}`),
-        api.get(`/villagers?year=${currentYear}`),
+
+        api.get(
+          `/donations?year=${currentYear}`
+        ),
+
+        api.get(
+          `/expenses?year=${currentYear}`
+        ),
+
+        api.get(
+          `/committee?year=${currentYear}`
+        ),
+
+        api.get(
+          `/villagers?year=${currentYear}`
+        ),
+
       ]);
+
+
+      // =================================================
+      // LOG RESPONSES
+      // =================================================
 
       console.log(
         "DONATIONS RESPONSE:",
         donationsResponse
       );
 
+
       console.log(
         "EXPENSES RESPONSE:",
         expensesResponse
       );
+
 
       console.log(
         "COMMITTEE RESPONSE:",
         committeeResponse
       );
 
+
       console.log(
         "VILLAGERS RESPONSE:",
         villagersResponse
       );
 
+
       // =================================================
-      // DONATIONS
+      // EXTRACT DATA
       // =================================================
 
       const donationList =
-        Array.isArray(donationsResponse)
-          ? donationsResponse
-          : Array.isArray(
-              donationsResponse?.donations
-            )
-          ? donationsResponse.donations
-          : Array.isArray(
-              donationsResponse?.data
-            )
-          ? donationsResponse.data
-          : [];
+        extractList(
+          donationsResponse,
+          [
+            "donations",
+            "data",
+          ]
+        );
 
-      // =================================================
-      // EXPENSES
-      // =================================================
 
       const expenseList =
-        Array.isArray(expensesResponse)
-          ? expensesResponse
-          : Array.isArray(
-              expensesResponse?.expenses
-            )
-          ? expensesResponse.expenses
-          : Array.isArray(
-              expensesResponse?.data
-            )
-          ? expensesResponse.data
-          : [];
+        extractList(
+          expensesResponse,
+          [
+            "expenses",
+            "data",
+          ]
+        );
 
-      // =================================================
-      // COMMITTEE
-      // =================================================
 
       const committeeList =
-        Array.isArray(committeeResponse)
-          ? committeeResponse
-          : Array.isArray(
-              committeeResponse?.committee
-            )
-          ? committeeResponse.committee
-          : Array.isArray(
-              committeeResponse?.members
-            )
-          ? committeeResponse.members
-          : Array.isArray(
-              committeeResponse?.data
-            )
-          ? committeeResponse.data
-          : [];
+        extractList(
+          committeeResponse,
+          [
+            "committee",
+            "members",
+            "data",
+          ]
+        );
 
-      // =================================================
-      // VILLAGERS
-      // =================================================
 
       const villagerList =
-        Array.isArray(villagersResponse)
-          ? villagersResponse
-          : Array.isArray(
-              villagersResponse?.villagers
-            )
-          ? villagersResponse.villagers
-          : Array.isArray(
-              villagersResponse?.data
-            )
-          ? villagersResponse.data
-          : [];
+        extractList(
+          villagersResponse,
+          [
+            "villagers",
+            "data",
+          ]
+        );
+
 
       // =================================================
       // SAVE DATA
       // =================================================
 
-      setDonations(donationList);
-      setExpenses(expenseList);
-      setCommittee(committeeList);
-      setVillagers(villagerList);
+      setDonations(
+        donationList
+      );
+
+
+      setExpenses(
+        expenseList
+      );
+
+
+      setCommittee(
+        committeeList
+      );
+
+
+      setVillagers(
+        villagerList
+      );
+
+
+      // =================================================
+      // LOG COUNTS
+      // =================================================
 
       console.log(
         "DONATIONS COUNT:",
         donationList.length
       );
 
+
       console.log(
         "EXPENSES COUNT:",
         expenseList.length
       );
+
 
       console.log(
         "COMMITTEE COUNT:",
         committeeList.length
       );
 
+
       console.log(
         "VILLAGERS COUNT:",
         villagerList.length
       );
 
+
       console.log(
         "================================="
       );
+
 
       console.log(
         "DASHBOARD LOADED SUCCESSFULLY"
       );
 
+
       console.log(
         "================================="
       );
 
+
     } catch (error) {
 
       console.error(
-        "Dashboard error:",
+        "DASHBOARD ERROR:",
         error
       );
 
+
       setError(
         error?.message ||
-          "Failed to load dashboard"
+        "Failed to load dashboard"
       );
 
+
       setDonations([]);
+
       setExpenses([]);
+
       setCommittee([]);
+
       setVillagers([]);
+
 
     } finally {
 
       setLoading(false);
 
     }
+
   };
+
 
   // =====================================================
   // LOAD WHEN YEAR CHANGES
   // =====================================================
 
   useEffect(() => {
+
     if (currentYear) {
+
       loadDashboard();
+
     }
+
   }, [currentYear]);
+
 
   // =====================================================
   // TOTAL DONATIONS
   // =====================================================
 
-  const totalDonations = useMemo(() => {
-    return donations.reduce(
-      (total, donation) =>
-        total +
-        Number(
-          donation.amount || 0
-        ),
-      0
-    );
-  }, [donations]);
+  const totalDonations =
+    useMemo(() => {
+
+      return donations.reduce(
+        (total, donation) =>
+          total +
+          Number(
+            donation.amount || 0
+          ),
+        0
+      );
+
+    }, [donations]);
+
 
   // =====================================================
   // RECEIVED DONATIONS
   // =====================================================
 
-  const receivedAmount = useMemo(() => {
-    return donations
-      .filter(
-        (donation) =>
-          String(
-            donation.status || ""
-          ).toLowerCase() !== "pending"
-      )
-      .reduce(
-        (total, donation) =>
-          total +
-          Number(
-            donation.amount || 0
-          ),
-        0
-      );
-  }, [donations]);
+  const receivedAmount =
+    useMemo(() => {
+
+      return donations
+
+        .filter(
+          (donation) =>
+            String(
+              donation.status || ""
+            ).toLowerCase() !==
+            "pending"
+        )
+
+        .reduce(
+          (total, donation) =>
+            total +
+            Number(
+              donation.amount || 0
+            ),
+          0
+        );
+
+    }, [donations]);
+
 
   // =====================================================
   // PENDING DONATIONS
   // =====================================================
 
-  const pendingDonations = useMemo(() => {
-    return donations
-      .filter(
-        (donation) =>
-          String(
-            donation.status || ""
-          ).toLowerCase() === "pending"
-      )
-      .reduce(
-        (total, donation) =>
-          total +
-          Number(
-            donation.amount || 0
-          ),
-        0
-      );
-  }, [donations]);
+  const pendingDonations =
+    useMemo(() => {
+
+      return donations
+
+        .filter(
+          (donation) =>
+            String(
+              donation.status || ""
+            ).toLowerCase() ===
+            "pending"
+        )
+
+        .reduce(
+          (total, donation) =>
+            total +
+            Number(
+              donation.amount || 0
+            ),
+          0
+        );
+
+    }, [donations]);
+
 
   // =====================================================
   // TOTAL EXPENSES
   // =====================================================
 
-  /*
-   * IMPORTANT:
-   *
-   * Expense model does NOT contain a "status" field.
-   *
-   * Therefore we must calculate expenses directly
-   * from expense.amount.
-   */
+  const totalExpenses =
+    useMemo(() => {
 
-  const totalExpenses = useMemo(() => {
-    return expenses.reduce(
-      (total, expense) =>
-        total +
-        Number(
-          expense.amount || 0
-        ),
-      0
-    );
-  }, [expenses]);
+      return expenses.reduce(
+        (total, expense) =>
+          total +
+          Number(
+            expense.amount || 0
+          ),
+        0
+      );
+
+    }, [expenses]);
+
 
   // =====================================================
   // BALANCE
   // =====================================================
 
-  /*
-   * Remaining Balance =
-   *
-   * Received Donations - Total Expenses
-   */
-
   const balance =
-    receivedAmount - totalExpenses;
+    receivedAmount -
+    totalExpenses;
+
 
   // =====================================================
   // FORMAT MONEY
   // =====================================================
 
-  const money = (value) =>
-    `₹${Number(
+  const money = (
+    value
+  ) => {
+
+    return `₹${Number(
       value || 0
     ).toLocaleString("en-IN")}`;
+
+  };
+
 
   // =====================================================
   // RECENT DONATIONS
@@ -318,25 +470,32 @@ function Home() {
   const recentDonations = [
     ...donations,
   ]
+
     .sort(
       (a, b) =>
         new Date(
           b.date ||
-          b.createdAt
+          b.createdAt ||
+          0
         ) -
         new Date(
           a.date ||
-          a.createdAt
+          a.createdAt ||
+          0
         )
     )
+
     .slice(0, 5);
+
 
   // =====================================================
   // PAGE
   // =====================================================
 
   return (
+
     <div className="dashboard-page">
+
 
       {/* =================================================
           HEADER
@@ -350,9 +509,11 @@ function Home() {
             GANESH UTSAVAM {currentYear}
           </span>
 
+
           <h2>
             Festival Dashboard
           </h2>
+
 
           <p>
             Overview of the {currentYear} Ganesh Utsavam.
@@ -361,6 +522,7 @@ function Home() {
         </div>
 
       </div>
+
 
       {/* =================================================
           ERROR
@@ -387,9 +549,11 @@ function Home() {
               Dashboard Error
             </strong>
 
+
             <p>
               {error}
             </p>
+
 
             <button
               onClick={loadDashboard}
@@ -410,6 +574,7 @@ function Home() {
 
       )}
 
+
       {/* =================================================
           LOADING
       ================================================= */}
@@ -422,6 +587,7 @@ function Home() {
             Loading dashboard...
           </h3>
 
+
           <p>
             Fetching festival data.
           </p>
@@ -432,11 +598,13 @@ function Home() {
 
         <>
 
+
           {/* =================================================
               FINANCIAL CARDS
           ================================================= */}
 
           <div className="dashboard-stats">
+
 
             {/* TOTAL RECEIVED */}
 
@@ -446,15 +614,18 @@ function Home() {
                 ₹
               </div>
 
+
               <span>
                 Total Received
               </span>
+
 
               <strong>
                 {money(
                   receivedAmount
                 )}
               </strong>
+
 
               <small>
                 {donations.length} donations
@@ -471,15 +642,18 @@ function Home() {
                 ◇
               </div>
 
+
               <span>
                 Total Expenses
               </span>
+
 
               <strong>
                 {money(
                   totalExpenses
                 )}
               </strong>
+
 
               <small>
                 {expenses.length} expenses
@@ -496,15 +670,18 @@ function Home() {
                 ✓
               </div>
 
+
               <span>
                 Remaining Balance
               </span>
+
 
               <strong>
                 {money(
                   balance
                 )}
               </strong>
+
 
               <small>
                 Received − Expenses
@@ -521,13 +698,16 @@ function Home() {
                 ♟
               </div>
 
+
               <span>
                 Villagers
               </span>
 
+
               <strong>
                 {villagers.length}
               </strong>
+
 
               <small>
                 {committee.length} committee members
@@ -544,6 +724,7 @@ function Home() {
 
           <div className="dashboard-grid">
 
+
             {/* =================================================
                 DONATION OVERVIEW
             ================================================= */}
@@ -557,6 +738,7 @@ function Home() {
                   <span className="page-eyebrow">
                     CONTRIBUTIONS
                   </span>
+
 
                   <h3>
                     Donation Overview
@@ -573,6 +755,7 @@ function Home() {
                   Received
                 </span>
 
+
                 <strong>
                   {money(
                     receivedAmount
@@ -588,6 +771,7 @@ function Home() {
                   Pending
                 </span>
 
+
                 <strong>
                   {money(
                     pendingDonations
@@ -602,6 +786,7 @@ function Home() {
                 <span>
                   Total Records
                 </span>
+
 
                 <strong>
                   {donations.length}
@@ -626,6 +811,7 @@ function Home() {
                     FESTIVAL SPENDING
                   </span>
 
+
                   <h3>
                     Expense Overview
                   </h3>
@@ -641,6 +827,7 @@ function Home() {
                   Total Expenses
                 </span>
 
+
                 <strong>
                   {money(
                     totalExpenses
@@ -655,6 +842,7 @@ function Home() {
                 <span>
                   Records
                 </span>
+
 
                 <strong>
                   {expenses.length}
@@ -681,6 +869,7 @@ function Home() {
                   RECENT ACTIVITY
                 </span>
 
+
                 <h3>
                   Recent Donations
                 </h3>
@@ -701,11 +890,13 @@ function Home() {
               <div className="dashboard-recent-list">
 
                 {recentDonations.map(
-                  (donation) => {
+                  (donation, index) => {
 
                     const id =
                       donation._id ||
-                      donation.id;
+                      donation.id ||
+                      `donation-${index}`;
+
 
                     return (
 
@@ -722,6 +913,7 @@ function Home() {
                               "Unknown"}
                           </strong>
 
+
                           <small>
                             {donation.date ||
                               donation.createdAt ||
@@ -729,6 +921,7 @@ function Home() {
                           </small>
 
                         </div>
+
 
                         <strong>
                           {money(
@@ -754,7 +947,10 @@ function Home() {
       )}
 
     </div>
+
   );
+
 }
+
 
 export default Home;

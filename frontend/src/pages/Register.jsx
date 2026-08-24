@@ -3,8 +3,20 @@ import { useNavigate } from "react-router-dom";
 
 import api from "../utils/api";
 
+
+// =====================================================
+// REGISTER
+// =====================================================
+
 function Register() {
-  const navigate = useNavigate();
+
+  const navigate =
+    useNavigate();
+
+
+  // =====================================================
+  // FORM STATE
+  // =====================================================
 
   const [form, setForm] = useState({
     name: "",
@@ -13,102 +25,175 @@ function Register() {
     confirmPassword: "",
   });
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+
+  // =====================================================
+  // UI STATE
+  // =====================================================
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
+
+  const [success, setSuccess] =
+    useState("");
+
 
   // =====================================================
   // INPUT CHANGE
   // =====================================================
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+
+    const {
+      name,
+      value,
+    } = e.target;
+
 
     setForm((previous) => ({
       ...previous,
       [name]: value,
     }));
 
+
     setError("");
+
     setSuccess("");
+
   };
+
 
   // =====================================================
   // REGISTER
   // =====================================================
 
   const handleSubmit = async (e) => {
+
     e.preventDefault();
 
     setError("");
+
     setSuccess("");
+
 
     // ---------------------------------------------------
     // NAME
     // ---------------------------------------------------
 
-    if (!form.name.trim()) {
-      setError("Please enter your name.");
+    const name =
+      form.name.trim();
+
+
+    if (!name) {
+
+      setError(
+        "Please enter your name."
+      );
+
       return;
+
     }
+
 
     // ---------------------------------------------------
     // MOBILE
     // ---------------------------------------------------
 
-    if (!form.mobile.trim()) {
-      setError("Please enter mobile number.");
+    const mobile =
+      form.mobile.trim();
+
+
+    if (!mobile) {
+
+      setError(
+        "Please enter mobile number."
+      );
+
       return;
+
     }
 
-    if (!/^[0-9]{10}$/.test(form.mobile.trim())) {
+
+    if (
+      !/^[0-9]{10}$/.test(mobile)
+    ) {
+
       setError(
         "Please enter a valid 10-digit mobile number."
       );
+
       return;
+
     }
+
 
     // ---------------------------------------------------
     // PASSWORD
     // ---------------------------------------------------
 
     if (!form.password) {
-      setError("Please enter password.");
+
+      setError(
+        "Please enter password."
+      );
+
       return;
+
     }
 
-    if (form.password.length < 6) {
+
+    if (
+      form.password.length < 6
+    ) {
+
       setError(
         "Password must be at least 6 characters."
       );
+
       return;
+
     }
+
 
     // ---------------------------------------------------
     // CONFIRM PASSWORD
     // ---------------------------------------------------
 
     if (!form.confirmPassword) {
+
       setError(
         "Please confirm your password."
       );
+
       return;
+
     }
+
 
     if (
       form.password !==
       form.confirmPassword
     ) {
-      setError("Passwords do not match.");
+
+      setError(
+        "Passwords do not match."
+      );
+
       return;
+
     }
 
-    // ---------------------------------------------------
+
+    // ===================================================
     // API
-    // ---------------------------------------------------
+    // ===================================================
 
     try {
+
       setLoading(true);
+
 
       console.log(
         "================================="
@@ -120,54 +205,74 @@ function Register() {
 
       console.log(
         "NAME:",
-        form.name.trim()
+        name
       );
 
       console.log(
         "MOBILE:",
-        form.mobile.trim()
+        mobile
       );
 
       console.log(
         "================================="
       );
 
-      const data = await api.post(
-        "/auth/register",
-        {
-          name: form.name.trim(),
 
-          mobile: form.mobile.trim(),
+      // =================================================
+      // REGISTER REQUEST
+      // =================================================
 
-          password: form.password,
+      const data =
+        await api.post(
+          "/auth/register",
+          {
+            name,
+            mobile,
+            password:
+              form.password,
 
-          // Backend will use "viewer"
-          // if role is not provided.
-          role: "viewer",
-        }
-      );
+            // New users are viewers
+            role: "viewer",
+          }
+        );
+
 
       console.log(
         "REGISTER RESPONSE:",
         data
       );
 
-      // ---------------------------------------------------
-      // SUCCESS
-      // ---------------------------------------------------
 
-      if (!data?.success) {
+      // =================================================
+      // CHECK SUCCESS
+      // =================================================
+
+      if (
+        data?.success === false
+      ) {
+
         throw new Error(
           data?.message ||
-            "Registration failed."
+          "Registration failed."
         );
+
       }
 
+
+      // Some backends may not explicitly
+      // return success:true, but a successful
+      // HTTP response is still valid.
+
       setSuccess(
+        data?.message ||
         "Account created successfully. Please login."
       );
 
-      // Clear form
+
+      // =================================================
+      // CLEAR FORM
+      // =================================================
+
       setForm({
         name: "",
         mobile: "",
@@ -175,87 +280,130 @@ function Register() {
         confirmPassword: "",
       });
 
-      // ---------------------------------------------------
+
+      // =================================================
       // GO TO LOGIN
-      // ---------------------------------------------------
+      // =================================================
 
       setTimeout(() => {
-        navigate("/login");
+
+        navigate(
+          "/login"
+        );
+
       }, 1200);
 
+
     } catch (error) {
+
       console.error(
         "REGISTER ERROR:",
         error
       );
 
-      setError(
-        error?.message ||
+
+      if (
+        error?.name ===
+        "TypeError"
+      ) {
+
+        setError(
+          "Unable to connect to the server. Please try again."
+        );
+
+      } else {
+
+        setError(
+          error?.message ||
           "Registration failed. Please try again."
-      );
+        );
+
+      }
+
 
     } finally {
+
       setLoading(false);
+
     }
+
   };
+
 
   // =====================================================
   // PAGE
   // =====================================================
 
   return (
+
     <div className="register-page">
+
+
+      {/* =============================================
+          LOGO
+      ============================================== */}
+
+      <div className="register-logo">
+        ॐ
+      </div>
+
+
+      {/* =============================================
+          EYEBROW
+      ============================================== */}
+
+      <div className="register-eyebrow">
+        GANESH UTSAVAM
+      </div>
+
+
+      {/* =============================================
+          TITLE
+      ============================================== */}
+
+      <h1>
+        Create Account
+      </h1>
+
+
+      <p className="register-subtitle">
+        Register to access the
+        festival management system.
+      </p>
+
+
+      {/* =============================================
+          CARD
+      ============================================== */}
 
       <div className="register-card">
 
-        {/* =============================================
-            LOGO
-        ============================================== */}
-
-        <div className="register-logo">
-          ॐ
-        </div>
-
-        {/* =============================================
-            EYEBROW
-        ============================================== */}
-
-        <div className="register-eyebrow">
-          GANESH UTSAVAM
-        </div>
-
-        {/* =============================================
-            TITLE
-        ============================================== */}
-
-        <h1>
-          Create Account
-        </h1>
-
-        <p className="register-subtitle">
-          Register to access the
-          festival management system.
-        </p>
 
         {/* =============================================
             ERROR
         ============================================== */}
 
         {error && (
+
           <div className="register-error">
             {error}
           </div>
+
         )}
+
 
         {/* =============================================
             SUCCESS
         ============================================== */}
 
         {success && (
+
           <div className="register-success">
             {success}
           </div>
+
         )}
+
 
         {/* =============================================
             FORM
@@ -265,6 +413,7 @@ function Register() {
           onSubmit={handleSubmit}
         >
 
+
           {/* NAME */}
 
           <div className="register-group">
@@ -272,6 +421,7 @@ function Register() {
             <label>
               Full Name
             </label>
+
 
             <input
               type="text"
@@ -293,6 +443,7 @@ function Register() {
             <label>
               Mobile Number
             </label>
+
 
             <input
               type="tel"
@@ -317,6 +468,7 @@ function Register() {
               Password
             </label>
 
+
             <input
               type="password"
               name="password"
@@ -337,6 +489,7 @@ function Register() {
             <label>
               Confirm Password
             </label>
+
 
             <input
               type="password"
@@ -380,6 +533,7 @@ function Register() {
             Already have an account?
           </span>
 
+
           <button
             type="button"
             onClick={() =>
@@ -391,6 +545,7 @@ function Register() {
           </button>
 
         </div>
+
 
       </div>
 
@@ -405,6 +560,8 @@ function Register() {
           min-height: 100vh;
 
           display: flex;
+
+          flex-direction: column;
 
           align-items: center;
 
@@ -421,6 +578,8 @@ function Register() {
               transparent 35%
             ),
             #0b080e;
+
+          color: #f6f1f8;
         }
 
 
@@ -493,7 +652,7 @@ function Register() {
         }
 
 
-        .register-card h1 {
+        .register-page > h1 {
 
           margin:
             9px 0 0;
@@ -518,7 +677,9 @@ function Register() {
           line-height: 1.5;
 
           margin:
-            9px 0 25px;
+            9px auto 25px;
+
+          max-width: 380px;
 
         }
 
@@ -767,7 +928,10 @@ function Register() {
       `}</style>
 
     </div>
+
   );
+
 }
+
 
 export default Register;

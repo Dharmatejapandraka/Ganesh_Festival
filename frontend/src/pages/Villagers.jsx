@@ -3,8 +3,14 @@ import React, {
   useState,
 } from "react";
 
-const API_URL =
-  "http://localhost:5000/api/villagers";
+import api from "../utils/api";
+
+// =====================================================
+// API ENDPOINT
+// =====================================================
+
+const API_URL = "/villagers";
+
 
 function Villagers() {
 
@@ -35,25 +41,28 @@ function Villagers() {
   // ==========================================
 
   const fetchVillagers = async () => {
+
     try {
 
       setLoading(true);
 
       const response =
-        await fetch(API_URL);
+        await api.get(API_URL);
 
       const data =
-        await response.json();
+        response?.data ?? response;
 
-      if (!response.ok) {
+      if (
+        data?.success === false
+      ) {
         throw new Error(
-          data.message ||
+          data?.message ||
           "Failed to fetch villagers"
         );
       }
 
       setVillagers(
-        Array.isArray(data.villagers)
+        Array.isArray(data?.villagers)
           ? data.villagers
           : []
       );
@@ -66,7 +75,8 @@ function Villagers() {
       );
 
       alert(
-        "Unable to load villagers. Make sure backend is running."
+        error.message ||
+        "Unable to load villagers."
       );
 
     } finally {
@@ -77,8 +87,14 @@ function Villagers() {
   };
 
 
+  // ==========================================
+  // INITIAL LOAD
+  // ==========================================
+
   useEffect(() => {
+
     fetchVillagers();
+
   }, []);
 
 
@@ -99,6 +115,7 @@ function Villagers() {
         [name]: value,
       })
     );
+
   };
 
 
@@ -117,6 +134,7 @@ function Villagers() {
     });
 
     setShowModal(true);
+
   };
 
 
@@ -133,12 +151,18 @@ function Villagers() {
     );
 
     setForm({
-      name: villager.name || "",
-      mobile: villager.mobile || "",
-      gender: villager.gender || "Male",
+      name:
+        villager.name || "",
+
+      mobile:
+        villager.mobile || "",
+
+      gender:
+        villager.gender || "Male",
     });
 
     setShowModal(true);
+
   };
 
 
@@ -159,6 +183,7 @@ function Villagers() {
       mobile: "",
       gender: "Male",
     });
+
   };
 
 
@@ -170,20 +195,33 @@ function Villagers() {
 
     e.preventDefault();
 
+
     if (!form.name.trim()) {
-      alert("Please enter name.");
+
+      alert(
+        "Please enter name."
+      );
+
       return;
     }
 
+
     if (!form.mobile.trim()) {
+
       alert(
         "Please enter mobile number."
       );
+
       return;
     }
 
+
     if (!form.gender) {
-      alert("Please select gender.");
+
+      alert(
+        "Please select gender."
+      );
+
       return;
     }
 
@@ -192,68 +230,67 @@ function Villagers() {
 
       setSaving(true);
 
+
       const payload = {
-        name: form.name.trim(),
-        mobile: form.mobile.trim(),
-        gender: form.gender,
+
+        name:
+          form.name.trim(),
+
+        mobile:
+          form.mobile.trim(),
+
+        gender:
+          form.gender,
+
       };
+
 
       let response;
 
 
+      // ========================================
       // UPDATE
+      // ========================================
 
       if (editingId) {
 
         response =
-          await fetch(
+          await api.put(
             `${API_URL}/${editingId}`,
-            {
-              method: "PUT",
-
-              headers: {
-                "Content-Type":
-                  "application/json",
-              },
-
-              body:
-                JSON.stringify(payload),
-            }
+            payload
           );
 
       }
 
+
+      // ========================================
       // ADD
+      // ========================================
 
       else {
 
         response =
-          await fetch(
+          await api.post(
             API_URL,
-            {
-              method: "POST",
-
-              headers: {
-                "Content-Type":
-                  "application/json",
-              },
-
-              body:
-                JSON.stringify(payload),
-            }
+            payload
           );
+
       }
 
 
       const data =
-        await response.json();
+        response?.data ?? response;
 
 
-      if (!response.ok) {
+      if (
+        data?.success === false
+      ) {
+
         throw new Error(
-          data.message ||
+          data?.message ||
           "Failed to save villager"
         );
+
       }
 
 
@@ -286,6 +323,7 @@ function Villagers() {
       setSaving(false);
 
     }
+
   };
 
 
@@ -302,29 +340,31 @@ function Villagers() {
         "Are you sure you want to delete this villager?"
       );
 
+
     if (!confirmed) return;
 
 
     try {
 
       const response =
-        await fetch(
-          `${API_URL}/${id}`,
-          {
-            method: "DELETE",
-          }
+        await api.delete(
+          `${API_URL}/${id}`
         );
 
 
       const data =
-        await response.json();
+        response?.data ?? response;
 
 
-      if (!response.ok) {
+      if (
+        data?.success === false
+      ) {
+
         throw new Error(
-          data.message ||
+          data?.message ||
           "Failed to delete villager"
         );
+
       }
 
 
@@ -342,7 +382,9 @@ function Villagers() {
         error.message ||
         "Failed to delete villager."
       );
+
     }
+
   };
 
 
@@ -452,16 +494,21 @@ function Villagers() {
           </div>
 
           <span>
+
             {villagers.length}{" "}
+
             {villagers.length === 1
               ? "villager"
               : "villagers"}
+
           </span>
 
         </div>
 
 
-        {/* LOADING */}
+        {/* ===================================
+            LOADING
+        =================================== */}
 
         {loading && (
 
@@ -476,10 +523,13 @@ function Villagers() {
             </h3>
 
           </div>
+
         )}
 
 
-        {/* EMPTY */}
+        {/* ===================================
+            EMPTY
+        =================================== */}
 
         {!loading &&
           villagers.length === 0 && (
@@ -506,10 +556,13 @@ function Villagers() {
               </button>
 
             </div>
+
           )}
 
 
-        {/* LIST */}
+        {/* ===================================
+            LIST
+        =================================== */}
 
         {!loading &&
           villagers.length > 0 && (
@@ -517,7 +570,10 @@ function Villagers() {
             <div className="villagers-list">
 
               {villagers.map(
-                (villager, index) => (
+                (
+                  villager,
+                  index
+                ) => (
 
                   <div
                     className="villager-row"
@@ -621,6 +677,7 @@ function Villagers() {
               )}
 
             </div>
+
           )}
 
       </section>
@@ -641,7 +698,9 @@ function Villagers() {
                 e.currentTarget &&
               !saving
             ) {
+
               closeModal();
+
             }
 
           }}
@@ -661,9 +720,11 @@ function Villagers() {
                 </div>
 
                 <h2>
+
                   {editingId
                     ? "Edit Villager"
                     : "Add Villager"}
+
                 </h2>
 
               </div>
@@ -796,6 +857,7 @@ function Villagers() {
           </div>
 
         </div>
+
       )}
 
 
@@ -1254,257 +1316,265 @@ function Villagers() {
 
 
         /* ==========================================
-   MOBILE VILLAGERS - COMPACT SINGLE LINE
-   ========================================== */
+           MOBILE VILLAGERS - COMPACT SINGLE LINE
+        ========================================== */
 
-@media (max-width: 700px) {
+        @media (max-width: 700px) {
 
-  .villagers-page {
-    padding: 25px 12px 45px;
-  }
+          .villagers-page {
+            padding: 25px 12px 45px;
+          }
 
-  .villagers-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
 
-  .villagers-header h1 {
-    font-size: 34px;
-  }
+          .villagers-header {
+            flex-direction: column;
+            align-items: flex-start;
+          }
 
-  .villagers-count-card {
-    width: 100%;
-  }
 
+          .villagers-header h1 {
+            font-size: 34px;
+          }
 
-  /* ========================================
-     VILLAGER CARD
-     ======================================== */
 
-  .villager-row {
-    min-height: 0 !important;
+          .villagers-count-card {
+            width: 100%;
+          }
 
-    width: 100% !important;
 
-    display: grid !important;
+          /* ========================================
+             VILLAGER CARD
+          ======================================== */
 
-    grid-template-columns:
-      minmax(0, 1fr)
-      auto
-      10px
-      auto !important;
+          .villager-row {
+            min-height: 0 !important;
 
-    align-items: center !important;
+            width: 100% !important;
 
-    gap: 7px !important;
+            display: grid !important;
 
-    padding: 10px 11px !important;
+            grid-template-columns:
+              minmax(0, 1fr)
+              auto
+              10px
+              auto !important;
 
-    box-sizing: border-box !important;
+            align-items: center !important;
 
-    flex-wrap: nowrap !important;
-  }
+            gap: 7px !important;
 
+            padding: 10px 11px !important;
 
-  /* ========================================
-     REMOVE SERIAL NUMBER
-     ======================================== */
+            box-sizing: border-box !important;
 
-  .villager-number {
-    display: none !important;
-  }
+            flex-wrap: nowrap !important;
+          }
 
 
-  /* ========================================
-     REMOVE AVATAR
-     ======================================== */
+          /* ========================================
+             REMOVE SERIAL NUMBER
+          ======================================== */
 
-  .villager-icon {
-    display: none !important;
-  }
+          .villager-number {
+            display: none !important;
+          }
 
 
-  /* ========================================
-     NAME
-     ======================================== */
+          /* ========================================
+             REMOVE AVATAR
+          ======================================== */
 
-  .villager-info {
-    min-width: 0 !important;
+          .villager-icon {
+            display: none !important;
+          }
 
-    width: auto !important;
 
-    flex: none !important;
+          /* ========================================
+             NAME
+          ======================================== */
 
-    overflow: hidden !important;
-  }
+          .villager-info {
+            min-width: 0 !important;
 
-  .villager-info strong {
-    display: block !important;
+            width: auto !important;
 
-    margin: 0 !important;
+            flex: none !important;
 
-    color: #eee8f1 !important;
+            overflow: hidden !important;
+          }
 
-    font-size: 11px !important;
 
-    font-weight: 700 !important;
+          .villager-info strong {
+            display: block !important;
 
-    line-height: 1.2 !important;
+            margin: 0 !important;
 
-    white-space: nowrap !important;
+            color: #eee8f1 !important;
 
-    overflow: hidden !important;
+            font-size: 11px !important;
 
-    text-overflow: ellipsis !important;
-  }
+            font-weight: 700 !important;
 
+            line-height: 1.2 !important;
 
-  /* REMOVE VILLAGE MEMBER TEXT */
+            white-space: nowrap !important;
 
-  .villager-info span {
-    display: none !important;
-  }
+            overflow: hidden !important;
 
+            text-overflow: ellipsis !important;
+          }
 
-  /* ========================================
-     MOBILE NUMBER
-     ======================================== */
 
-  .villager-mobile {
-    min-width: 0 !important;
+          /* REMOVE VILLAGE MEMBER TEXT */
 
-    width: auto !important;
+          .villager-info span {
+            display: none !important;
+          }
 
-    margin: 0 !important;
 
-    white-space: nowrap !important;
-  }
+          /* ========================================
+             MOBILE NUMBER
+          ======================================== */
 
+          .villager-mobile {
+            min-width: 0 !important;
 
-  /* Hide MOBILE label */
+            width: auto !important;
 
-  .villager-mobile span {
-    display: none !important;
-  }
+            margin: 0 !important;
 
+            white-space: nowrap !important;
+          }
 
-  .villager-mobile strong {
-    color: #c8c0cc !important;
 
-    font-size: 9px !important;
+          /* Hide MOBILE label */
 
-    font-weight: 600 !important;
+          .villager-mobile span {
+            display: none !important;
+          }
 
-    white-space: nowrap !important;
-  }
 
+          .villager-mobile strong {
+            color: #c8c0cc !important;
 
-  /* ========================================
-     GENDER DOT
-     ======================================== */
+            font-size: 9px !important;
 
-  .villager-gender {
-    min-width: 9px !important;
+            font-weight: 600 !important;
 
-    width: 9px !important;
+            white-space: nowrap !important;
+          }
 
-    height: 9px !important;
 
-    padding: 0 !important;
+          /* ========================================
+             GENDER DOT
+          ======================================== */
 
-    margin: 0 !important;
+          .villager-gender {
+            min-width: 9px !important;
 
-    border-radius: 50% !important;
+            width: 9px !important;
 
-    font-size: 0 !important;
+            height: 9px !important;
 
-    line-height: 0 !important;
+            padding: 0 !important;
 
-    text-indent: -9999px !important;
-  }
+            margin: 0 !important;
 
+            border-radius: 50% !important;
 
-  /* MALE = GREEN */
+            font-size: 0 !important;
 
-  .villager-gender.male {
-    background: #39e875 !important;
+            line-height: 0 !important;
 
-    box-shadow:
-      0 0 4px #39e875,
-      0 0 8px rgba(57, 232, 117, 0.8) !important;
-  }
+            text-indent: -9999px !important;
+          }
 
 
-  /* FEMALE = ORANGE */
+          /* MALE = GREEN */
 
-  .villager-gender.female {
-    background: #ff9d32 !important;
+          .villager-gender.male {
+            background: #39e875 !important;
 
-    box-shadow:
-      0 0 4px #ff9d32,
-      0 0 8px rgba(255, 157, 50, 0.8) !important;
-  }
+            box-shadow:
+              0 0 4px #39e875,
+              0 0 8px rgba(57, 232, 117, 0.8) !important;
+          }
 
 
-  /* OTHER = PURPLE */
+          /* FEMALE = ORANGE */
 
-  .villager-gender.other {
-    background: #b58cff !important;
+          .villager-gender.female {
+            background: #ff9d32 !important;
 
-    box-shadow:
-      0 0 4px #b58cff,
-      0 0 8px rgba(181, 140, 255, 0.8) !important;
-  }
+            box-shadow:
+              0 0 4px #ff9d32,
+              0 0 8px rgba(255, 157, 50, 0.8) !important;
+          }
 
 
-  /* ========================================
-     EDIT + DELETE
-     ======================================== */
+          /* OTHER = PURPLE */
 
-  .villager-actions {
-    display: flex !important;
+          .villager-gender.other {
+            background: #b58cff !important;
 
-    align-items: center !important;
+            box-shadow:
+              0 0 4px #b58cff,
+              0 0 8px rgba(181, 140, 255, 0.8) !important;
+          }
 
-    justify-content: center !important;
 
-    gap: 4px !important;
+          /* ========================================
+             EDIT + DELETE
+          ======================================== */
 
-    margin: 0 !important;
+          .villager-actions {
+            display: flex !important;
 
-    flex-shrink: 0 !important;
-  }
+            align-items: center !important;
 
+            justify-content: center !important;
 
-  .villager-edit,
-  .villager-delete {
-    width: 27px !important;
+            gap: 4px !important;
 
-    height: 27px !important;
+            margin: 0 !important;
 
-    min-width: 27px !important;
+            flex-shrink: 0 !important;
+          }
 
-    padding: 0 !important;
 
-    margin: 0 !important;
+          .villager-edit,
+          .villager-delete {
+            width: 27px !important;
 
-    border-radius: 7px !important;
+            height: 27px !important;
 
-    display: flex !important;
+            min-width: 27px !important;
 
-    align-items: center !important;
+            padding: 0 !important;
 
-    justify-content: center !important;
+            margin: 0 !important;
 
-    font-size: 10px !important;
-  }
+            border-radius: 7px !important;
 
-}
+            display: flex !important;
+
+            align-items: center !important;
+
+            justify-content: center !important;
+
+            font-size: 10px !important;
+          }
+
+        }
 
       `}</style>
 
+
     </div>
+
   );
+
 }
+
 
 export default Villagers;

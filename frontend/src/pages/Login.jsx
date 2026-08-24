@@ -1,40 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-
-// =====================================================
-// API CONFIGURATION
-// =====================================================
-
-// Production backend
-const PRODUCTION_API_URL =
-  "https://ganesh-festival-backend-qzjm.onrender.com/api";
-
-// Read Render/Vite environment variable
-const ENV_API_URL =
-  import.meta.env.VITE_API_URL?.trim();
-
-// Prevent localhost from ever being used in production
-const API_BASE_URL =
-  import.meta.env.PROD
-    ? (
-        ENV_API_URL &&
-        !/localhost|127\.0\.0\.1/i.test(ENV_API_URL)
-          ? ENV_API_URL
-          : PRODUCTION_API_URL
-      )
-    : (
-        ENV_API_URL ||
-        "http://localhost:5000/api"
-      );
-
-// Remove trailing slash
-const CLEAN_API_BASE_URL =
-  API_BASE_URL.replace(/\/+$/, "");
-
-// Authentication API
-const API_URL =
-  `${CLEAN_API_BASE_URL}/auth`;
+import api from "../utils/api";
 
 
 // =====================================================
@@ -48,9 +15,9 @@ function Login() {
   const { login } = useAuth();
 
 
-  // ===================================================
+  // =====================================================
   // FORM STATE
-  // ===================================================
+  // =====================================================
 
   const [form, setForm] = useState({
     mobile: "",
@@ -58,13 +25,15 @@ function Login() {
   });
 
 
-  // ===================================================
+  // =====================================================
   // UI STATE
-  // ===================================================
+  // =====================================================
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] =
+    useState(false);
 
-  const [error, setError] = useState("");
+  const [error, setError] =
+    useState("");
 
 
   // =====================================================
@@ -78,12 +47,15 @@ function Login() {
       value,
     } = e.target;
 
+
     setForm((previous) => ({
       ...previous,
       [name]: value,
     }));
 
+
     setError("");
+
   };
 
 
@@ -105,6 +77,7 @@ function Login() {
     const mobile =
       form.mobile.trim();
 
+
     if (!mobile) {
 
       setError(
@@ -112,16 +85,20 @@ function Login() {
       );
 
       return;
+
     }
 
 
-    if (!/^[0-9]{10}$/.test(mobile)) {
+    if (
+      !/^[0-9]{10}$/.test(mobile)
+    ) {
 
       setError(
         "Please enter a valid 10-digit mobile number."
       );
 
       return;
+
     }
 
 
@@ -136,6 +113,7 @@ function Login() {
       );
 
       return;
+
     }
 
 
@@ -145,7 +123,7 @@ function Login() {
 
 
       // =================================================
-      // DEBUG INFORMATION
+      // DEBUG
       // =================================================
 
       console.log(
@@ -154,23 +132,6 @@ function Login() {
 
       console.log(
         "LOGIN REQUEST"
-      );
-
-      console.log(
-        "ENVIRONMENT:",
-        import.meta.env.PROD
-          ? "PRODUCTION"
-          : "DEVELOPMENT"
-      );
-
-      console.log(
-        "API BASE URL:",
-        CLEAN_API_BASE_URL
-      );
-
-      console.log(
-        "LOGIN URL:",
-        `${API_URL}/login`
       );
 
       console.log(
@@ -187,62 +148,20 @@ function Login() {
       // LOGIN REQUEST
       // =================================================
 
-      const response = await fetch(
-        `${API_URL}/login`,
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-
-          body: JSON.stringify({
+      const data =
+        await api.post(
+          "/auth/login",
+          {
             mobile,
             password:
               form.password,
-          }),
-        }
-      );
+          }
+        );
 
 
       // =================================================
-      // RESPONSE
+      // DEBUG RESPONSE
       // =================================================
-
-      const contentType =
-        response.headers.get(
-          "content-type"
-        ) || "";
-
-
-      let data;
-
-
-      if (
-        contentType.includes(
-          "application/json"
-        )
-      ) {
-
-        data =
-          await response.json();
-
-      } else {
-
-        const text =
-          await response.text();
-
-        data = {
-          message: text,
-        };
-      }
-
-
-      console.log(
-        "LOGIN STATUS:",
-        response.status
-      );
 
       console.log(
         "LOGIN RESPONSE:",
@@ -251,28 +170,18 @@ function Login() {
 
 
       // =================================================
-      // BACKEND ERROR
-      // =================================================
-
-      if (!response.ok) {
-
-        throw new Error(
-          data?.message ||
-          `Login failed with status ${response.status}.`
-        );
-      }
-
-
-      // =================================================
       // CHECK SUCCESS
       // =================================================
 
-      if (!data?.success) {
+      if (
+        data?.success === false
+      ) {
 
         throw new Error(
           data?.message ||
           "Login failed."
         );
+
       }
 
 
@@ -287,9 +196,11 @@ function Login() {
           data
         );
 
+
         throw new Error(
           "Login successful but authentication token was not received."
         );
+
       }
 
 
@@ -300,6 +211,7 @@ function Login() {
       console.log(
         "TOKEN RECEIVED"
       );
+
 
       console.log(
         "USER:",
@@ -349,13 +261,16 @@ function Login() {
           error?.message ||
           "Login failed. Please try again."
         );
+
       }
 
 
     } finally {
 
       setLoading(false);
+
     }
+
   };
 
 
@@ -972,7 +887,9 @@ function Login() {
       `}</style>
 
     </div>
+
   );
+
 }
 
 

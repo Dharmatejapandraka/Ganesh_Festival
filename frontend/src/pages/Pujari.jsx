@@ -4,145 +4,196 @@ import React, {
   useState,
 } from "react";
 
+import {
+  get,
+  post,
+  del,
+} from "../utils/api";
+
 import { useFestival } from "../context/FestivalContext";
+
 
 // =====================================================
 // API
 // =====================================================
 
-const API_URL = "http://localhost:5000/api/pujari";
+// IMPORTANT:
+// Do not use localhost here.
+//
+// api.js handles:
+// Local:
+// http://localhost:5000/api
+//
+// Production:
+// https://ganesh-festival-backend-qzjm.onrender.com/api
 
-// =====================================================
-// GET TOKEN
-// =====================================================
+const API_URL = "/pujari";
 
-const getToken = () => {
-  return (
-    localStorage.getItem("token") ||
-    localStorage.getItem("accessToken") ||
-    localStorage.getItem("authToken") ||
-    ""
-  );
-};
 
 // =====================================================
 // COMPONENT
 // =====================================================
 
 function Pujari() {
-  const { currentYear } = useFestival();
+
+  const { currentYear } =
+    useFestival();
+
 
   // ===================================================
   // STATE
   // ===================================================
 
-  const [pujaris, setPujaris] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [search, setSearch] = useState("");
+  const [pujaris, setPujaris] =
+    useState([]);
 
-  const [form, setForm] = useState({
-    name: "",
-    mobile: "",
-    amount: "",
-    details: "",
-  });
+  const [loading, setLoading] =
+    useState(true);
+
+  const [saving, setSaving] =
+    useState(false);
+
+  const [showModal, setShowModal] =
+    useState(false);
+
+  const [search, setSearch] =
+    useState("");
+
+
+  const [form, setForm] =
+    useState({
+      name: "",
+      mobile: "",
+      amount: "",
+      details: "",
+    });
+
 
   // ===================================================
   // FETCH PUJARIS
   // ===================================================
 
   const fetchPujaris = async () => {
+
     try {
+
       setLoading(true);
 
-      const token = getToken();
 
-      if (!token) {
-        console.error("JWT token not found in localStorage");
+      console.log(
+        "================================="
+      );
+
+      console.log(
+        "FETCHING PUJARIS"
+      );
+
+      console.log(
+        "YEAR:",
+        currentYear
+      );
+
+      console.log(
+        "================================="
+      );
+
+
+      const data =
+        await get(
+          `${API_URL}?year=${currentYear}`
+        );
+
+
+      console.log(
+        "PUJARI RESPONSE:",
+        data
+      );
+
+
+      if (data?.success) {
+
+        setPujaris(
+          Array.isArray(
+            data.pujaris
+          )
+            ? data.pujaris
+            : []
+        );
+
+      } else {
 
         setPujaris([]);
 
-        alert(
-          "Please login again. Authentication token not found."
-        );
-
-        return;
       }
 
-      console.log("Fetching pujaris...");
-      console.log("Year:", currentYear);
 
-      const response = await fetch(
-        `${API_URL}?year=${currentYear}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const data = await response.json();
-
-      console.log("PUJARI RESPONSE:", data);
-
-      if (!response.ok) {
-        throw new Error(
-          data.message || "Failed to fetch pujaris"
-        );
-      }
-
-      setPujaris(
-        Array.isArray(data.pujaris)
-          ? data.pujaris
-          : []
-      );
     } catch (error) {
-      console.error("FETCH PUJARIS ERROR:", error);
+
+      console.error(
+        "FETCH PUJARIS ERROR:",
+        error
+      );
+
 
       setPujaris([]);
 
+
       alert(
         error.message ||
-          "Unable to load pujaris."
+        "Unable to load pujaris."
       );
+
+
     } finally {
+
       setLoading(false);
+
     }
+
   };
+
 
   // ===================================================
   // LOAD WHEN YEAR / PAGE LOADS
   // ===================================================
 
   useEffect(() => {
+
     fetchPujaris();
+
   }, [currentYear]);
+
 
   // ===================================================
   // FORM CHANGE
   // ===================================================
 
-  const handleChange = (e) => {
+  const handleChange = (
+    event
+  ) => {
+
     const {
       name,
       value,
-    } = e.target;
+    } = event.target;
 
-    setForm((previous) => ({
-      ...previous,
-      [name]: value,
-    }));
+
+    setForm(
+      (previous) => ({
+        ...previous,
+        [name]: value,
+      })
+    );
+
   };
+
 
   // ===================================================
   // OPEN MODAL
   // ===================================================
 
   const openModal = () => {
+
     setForm({
       name: "",
       mobile: "",
@@ -150,19 +201,27 @@ function Pujari() {
       details: "",
     });
 
+
     setShowModal(true);
+
   };
+
 
   // ===================================================
   // CLOSE MODAL
   // ===================================================
 
   const closeModal = () => {
+
     if (saving) {
+
       return;
+
     }
 
+
     setShowModal(false);
+
 
     setForm({
       name: "",
@@ -170,39 +229,69 @@ function Pujari() {
       amount: "",
       details: "",
     });
+
   };
+
 
   // ===================================================
   // ADD PUJARI
   // ===================================================
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (
+    event
+  ) => {
+
+    event.preventDefault();
+
 
     // -----------------------------------------------
     // NAME VALIDATION
     // -----------------------------------------------
 
-    if (!form.name.trim()) {
-      alert("Please enter pujari name.");
+    if (
+      !form.name.trim()
+    ) {
+
+      alert(
+        "Please enter pujari name."
+      );
+
       return;
+
     }
+
 
     // -----------------------------------------------
     // MOBILE VALIDATION
     // -----------------------------------------------
 
-    if (!form.mobile.trim()) {
-      alert("Please enter mobile number.");
+    if (
+      !form.mobile.trim()
+    ) {
+
+      alert(
+        "Please enter mobile number."
+      );
+
       return;
+
     }
 
-    if (!/^[0-9]{10}$/.test(form.mobile.trim())) {
+
+    if (
+      !/^[0-9]{10}$/.test(
+        form.mobile.trim()
+      )
+    ) {
+
       alert(
         "Enter a valid 10-digit mobile number."
       );
+
       return;
+
     }
+
 
     // -----------------------------------------------
     // AMOUNT VALIDATION
@@ -212,212 +301,295 @@ function Pujari() {
       form.amount === "" ||
       Number(form.amount) < 0
     ) {
-      alert("Please enter a valid amount.");
+
+      alert(
+        "Please enter a valid amount."
+      );
+
       return;
+
     }
 
+
     try {
+
       setSaving(true);
 
-      const token = getToken();
-
-      if (!token) {
-        alert(
-          "Please login again. Authentication token not found."
-        );
-        return;
-      }
 
       // ---------------------------------------------
       // POST
       // ---------------------------------------------
 
-      const response = await fetch(
-        API_URL,
-        {
-          method: "POST",
+      const data =
+        await post(
+          API_URL,
+          {
+            name:
+              form.name.trim(),
 
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+            mobile:
+              form.mobile.trim(),
 
-          body: JSON.stringify({
-            name: form.name.trim(),
-            mobile: form.mobile.trim(),
-            amount: Number(form.amount),
-            details: form.details.trim(),
-            festivalYear: Number(currentYear),
-          }),
-        }
-      );
+            amount:
+              Number(
+                form.amount
+              ),
 
-      const data = await response.json();
+            details:
+              form.details.trim(),
+
+            festivalYear:
+              Number(
+                currentYear
+              ),
+          }
+        );
+
 
       console.log(
         "ADD PUJARI RESPONSE:",
         data
       );
 
-      if (!response.ok) {
+
+      if (!data?.success) {
+
         throw new Error(
-          data.message ||
-            "Failed to add pujari"
+          data?.message ||
+          "Failed to add pujari"
         );
+
       }
 
-      alert("Pujari added successfully.");
+
+      alert(
+        "Pujari added successfully."
+      );
+
 
       closeModal();
 
+
       await fetchPujaris();
+
+
     } catch (error) {
+
       console.error(
         "ADD PUJARI ERROR:",
         error
       );
 
+
       alert(
         error.message ||
-          "Failed to add pujari"
+        "Failed to add pujari"
       );
+
+
     } finally {
+
       setSaving(false);
+
     }
+
   };
+
 
   // ===================================================
   // DELETE PUJARI
   // ===================================================
 
-  const handleDelete = async (id) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this pujari?"
-    );
+  const handleDelete = async (
+    id
+  ) => {
 
-    if (!confirmed) {
-      return;
-    }
+    if (!id) {
 
-    try {
-      const token = getToken();
-
-      if (!token) {
-        alert(
-          "Please login again. Authentication token not found."
-        );
-        return;
-      }
-
-      const response = await fetch(
-        `${API_URL}/${id}`,
-        {
-          method: "DELETE",
-
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      alert(
+        "Pujari ID is missing."
       );
 
-      const data = await response.json();
+      return;
+
+    }
+
+
+    const confirmed =
+      window.confirm(
+        "Are you sure you want to delete this pujari?"
+      );
+
+
+    if (!confirmed) {
+
+      return;
+
+    }
+
+
+    try {
+
+      const data =
+        await del(
+          `${API_URL}/${id}`
+        );
+
 
       console.log(
         "DELETE PUJARI RESPONSE:",
         data
       );
 
-      if (!response.ok) {
+
+      if (!data?.success) {
+
         throw new Error(
-          data.message ||
-            "Failed to delete pujari"
+          data?.message ||
+          "Failed to delete pujari"
         );
+
       }
+
 
       alert(
         "Pujari deleted successfully."
       );
 
+
       await fetchPujaris();
+
+
     } catch (error) {
+
       console.error(
         "DELETE PUJARI ERROR:",
         error
       );
 
+
       alert(
         error.message ||
-          "Failed to delete pujari"
+        "Failed to delete pujari"
       );
+
     }
+
   };
+
 
   // ===================================================
   // SEARCH
   // ===================================================
 
-  const filteredPujaris = useMemo(() => {
-    const text = search
-      .trim()
-      .toLowerCase();
+  const filteredPujaris =
+    useMemo(() => {
 
-    if (!text) {
-      return pujaris;
-    }
+      const text =
+        search
+          .trim()
+          .toLowerCase();
 
-    return pujaris.filter(
-      (pujari) =>
-        pujari.name
-          ?.toLowerCase()
-          .includes(text) ||
-        pujari.mobile
-          ?.includes(text) ||
-        pujari.details
-          ?.toLowerCase()
-          .includes(text)
-    );
-  }, [pujaris, search]);
+
+      if (!text) {
+
+        return pujaris;
+
+      }
+
+
+      return pujaris.filter(
+        (pujari) =>
+
+          String(
+            pujari.name || ""
+          )
+            .toLowerCase()
+            .includes(text)
+
+          ||
+
+          String(
+            pujari.mobile || ""
+          )
+            .includes(text)
+
+          ||
+
+          String(
+            pujari.details || ""
+          )
+            .toLowerCase()
+            .includes(text)
+      );
+
+    }, [
+      pujaris,
+      search,
+    ]);
+
 
   // ===================================================
   // TOTAL AMOUNT
   // ===================================================
 
-  const totalAmount = pujaris.reduce(
-    (total, pujari) =>
-      total +
-      Number(pujari.amount || 0),
-    0
-  );
+  const totalAmount =
+    pujaris.reduce(
+      (total, pujari) =>
+        total +
+        Number(
+          pujari.amount || 0
+        ),
+      0
+    );
+
 
   // ===================================================
   // MONEY FORMAT
   // ===================================================
 
-  const formatMoney = (amount) => {
+  const formatMoney = (
+    amount
+  ) => {
+
     return `₹${Number(
       amount || 0
-    ).toLocaleString("en-IN")}`;
+    ).toLocaleString(
+      "en-IN"
+    )}`;
+
   };
+
 
   // ===================================================
   // DATE FORMAT
   // ===================================================
 
-  const formatDate = (date) => {
+  const formatDate = (
+    date
+  ) => {
+
     if (!date) {
+
       return "-";
+
     }
 
-    const parsed = new Date(date);
+
+    const parsed =
+      new Date(date);
+
 
     if (
       Number.isNaN(
         parsed.getTime()
       )
     ) {
+
       return "-";
+
     }
+
 
     return parsed.toLocaleDateString(
       "en-IN",
@@ -427,14 +599,18 @@ function Pujari() {
         year: "numeric",
       }
     );
+
   };
+
 
   // ===================================================
   // RENDER
   // ===================================================
 
   return (
+
     <div className="pujari-page">
+
 
       {/* =========================================
           HEADER
@@ -443,33 +619,43 @@ function Pujari() {
       <section className="pujari-header">
 
         <div>
+
           <div className="pujari-eyebrow">
             GANESH UTSAVAM {currentYear}
           </div>
 
-          <h1>Pujari</h1>
+
+          <h1>
+            Pujari
+          </h1>
+
 
           <p>
             Manage pujari details and
             festival payments.
           </p>
+
         </div>
+
 
         <button
           className="pujari-primary-button"
-          onClick={openModal}
+          onClick={
+            openModal
+          }
         >
           + Add Pujari
         </button>
 
       </section>
 
+
       {/* =========================================
           STATS
-          ONLY TWO CARDS
       ========================================== */}
 
       <section className="pujari-stats">
+
 
         {/* TOTAL PUJARIS */}
 
@@ -479,21 +665,29 @@ function Pujari() {
             ॐ
           </div>
 
+
           <div>
+
             <span>
               Total Pujaris
             </span>
 
+
             <strong>
-              {pujaris.length}
+              {
+                pujaris.length
+              }
             </strong>
+
 
             <small>
               {currentYear}
             </small>
+
           </div>
 
         </div>
+
 
         {/* TOTAL AMOUNT */}
 
@@ -503,23 +697,33 @@ function Pujari() {
             ₹
           </div>
 
+
           <div>
+
             <span>
               Total Amount
             </span>
 
+
             <strong>
-              {formatMoney(totalAmount)}
+              {
+                formatMoney(
+                  totalAmount
+                )
+              }
             </strong>
+
 
             <small>
               Festival payment
             </small>
+
           </div>
 
         </div>
 
       </section>
+
 
       {/* =========================================
           SEARCH
@@ -533,12 +737,13 @@ function Pujari() {
             ⌕
           </span>
 
+
           <input
             type="text"
             value={search}
-            onChange={(e) =>
+            onChange={(event) =>
               setSearch(
-                e.target.value
+                event.target.value
               )
             }
             placeholder="Search pujari name or mobile..."
@@ -546,20 +751,30 @@ function Pujari() {
 
         </div>
 
+
         <span className="pujari-count">
-          {filteredPujaris.length}{" "}
-          {filteredPujaris.length === 1
-            ? "pujari"
-            : "pujaris"}
+
+          {
+            filteredPujaris.length
+          }{" "}
+
+          {
+            filteredPujaris.length === 1
+              ? "pujari"
+              : "pujaris"
+          }
+
         </span>
 
       </div>
+
 
       {/* =========================================
           RECORDS
       ========================================== */}
 
       <section className="pujari-records">
+
 
         <div className="pujari-records-header">
 
@@ -569,17 +784,24 @@ function Pujari() {
               {currentYear} PUJARI RECORDS
             </div>
 
+
             <h2>
               Pujari List
             </h2>
 
           </div>
 
+
           <strong>
-            {formatMoney(totalAmount)}
+            {
+              formatMoney(
+                totalAmount
+              )
+            }
           </strong>
 
         </div>
+
 
         {/* LOADING */}
 
@@ -591,11 +813,13 @@ function Pujari() {
               ⏳
             </div>
 
+
             <h3>
               Loading...
             </h3>
 
           </div>
+
 
         ) : filteredPujaris.length === 0 ? (
 
@@ -609,22 +833,36 @@ function Pujari() {
               ॐ
             </div>
 
+
             <h3>
               No Pujaris Found
             </h3>
 
+
             <p>
-              Add a pujari for {currentYear}.
+              {
+                search
+                  ? "Try a different search."
+                  : `Add a pujari for ${currentYear}.`
+              }
             </p>
 
-            <button
-              className="pujari-primary-button"
-              onClick={openModal}
-            >
-              + Add Pujari
-            </button>
+
+            {!search && (
+
+              <button
+                className="pujari-primary-button"
+                onClick={
+                  openModal
+                }
+              >
+                + Add Pujari
+              </button>
+
+            )}
 
           </div>
+
 
         ) : (
 
@@ -639,8 +877,11 @@ function Pujari() {
 
                 <div
                   className="pujari-row"
-                  key={pujari._id}
+                  key={
+                    pujari._id
+                  }
                 >
+
 
                   {/* PERSON */}
 
@@ -650,19 +891,26 @@ function Pujari() {
                       ॐ
                     </div>
 
+
                     <div>
 
                       <strong>
-                        {pujari.name}
+                        {
+                          pujari.name
+                        }
                       </strong>
 
+
                       <span>
-                        {pujari.mobile}
+                        {
+                          pujari.mobile
+                        }
                       </span>
 
                     </div>
 
                   </div>
+
 
                   {/* DETAILS */}
 
@@ -672,12 +920,16 @@ function Pujari() {
                       DETAILS
                     </small>
 
+
                     <span>
-                      {pujari.details ||
-                        "No details"}
+                      {
+                        pujari.details ||
+                        "No details"
+                      }
                     </span>
 
                   </div>
+
 
                   {/* AMOUNT */}
 
@@ -687,13 +939,17 @@ function Pujari() {
                       AMOUNT
                     </small>
 
+
                     <strong>
-                      {formatMoney(
-                        pujari.amount
-                      )}
+                      {
+                        formatMoney(
+                          pujari.amount
+                        )
+                      }
                     </strong>
 
                   </div>
+
 
                   {/* DATE */}
 
@@ -703,13 +959,17 @@ function Pujari() {
                       DATE
                     </small>
 
+
                     <span>
-                      {formatDate(
-                        pujari.createdAt
-                      )}
+                      {
+                        formatDate(
+                          pujari.createdAt
+                        )
+                      }
                     </span>
 
                   </div>
+
 
                   {/* DELETE */}
 
@@ -725,7 +985,9 @@ function Pujari() {
                     🗑
                   </button>
 
+
                 </div>
+
               )
             )}
 
@@ -735,6 +997,7 @@ function Pujari() {
 
       </section>
 
+
       {/* =========================================
           ADD MODAL
       ========================================== */}
@@ -743,20 +1006,23 @@ function Pujari() {
 
         <div
           className="pujari-modal-overlay"
-          onMouseDown={(e) => {
+          onMouseDown={(event) => {
 
             if (
-              e.target ===
-                e.currentTarget &&
+              event.target ===
+              event.currentTarget &&
               !saving
             ) {
+
               closeModal();
+
             }
 
           }}
         >
 
           <div className="pujari-modal">
+
 
             {/* MODAL HEADER */}
 
@@ -768,28 +1034,38 @@ function Pujari() {
                   {currentYear} PUJARI
                 </div>
 
+
                 <h2>
                   Add Pujari
                 </h2>
 
               </div>
 
+
               <button
                 className="pujari-modal-close"
-                onClick={closeModal}
-                disabled={saving}
+                onClick={
+                  closeModal
+                }
+                disabled={
+                  saving
+                }
               >
                 ×
               </button>
 
             </div>
 
+
             {/* FORM */}
 
             <form
               className="pujari-form"
-              onSubmit={handleSubmit}
+              onSubmit={
+                handleSubmit
+              }
             >
+
 
               {/* NAME */}
 
@@ -799,16 +1075,22 @@ function Pujari() {
                   Pujari Name *
                 </label>
 
+
                 <input
                   type="text"
                   name="name"
-                  value={form.name}
-                  onChange={handleChange}
+                  value={
+                    form.name
+                  }
+                  onChange={
+                    handleChange
+                  }
                   placeholder="Enter pujari name"
                   required
                 />
 
               </div>
+
 
               {/* MOBILE */}
 
@@ -818,17 +1100,24 @@ function Pujari() {
                   Mobile Number *
                 </label>
 
+
                 <input
                   type="tel"
                   name="mobile"
-                  value={form.mobile}
-                  onChange={handleChange}
+                  value={
+                    form.mobile
+                  }
+                  onChange={
+                    handleChange
+                  }
                   placeholder="10 digit mobile number"
                   maxLength="10"
+                  inputMode="numeric"
                   required
                 />
 
               </div>
+
 
               {/* AMOUNT */}
 
@@ -838,17 +1127,23 @@ function Pujari() {
                   Amount *
                 </label>
 
+
                 <input
                   type="number"
                   name="amount"
-                  value={form.amount}
-                  onChange={handleChange}
+                  value={
+                    form.amount
+                  }
+                  onChange={
+                    handleChange
+                  }
                   placeholder="Enter amount"
                   min="0"
                   required
                 />
 
               </div>
+
 
               {/* DETAILS */}
 
@@ -858,15 +1153,21 @@ function Pujari() {
                   Details
                 </label>
 
+
                 <input
                   type="text"
                   name="details"
-                  value={form.details}
-                  onChange={handleChange}
+                  value={
+                    form.details
+                  }
+                  onChange={
+                    handleChange
+                  }
                   placeholder="Optional details"
                 />
 
               </div>
+
 
               {/* DATE */}
 
@@ -878,24 +1179,30 @@ function Pujari() {
                     DATE
                   </span>
 
+
                   <strong>
-                    {new Date().toLocaleDateString(
-                      "en-IN",
-                      {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      }
-                    )}
+                    {
+                      new Date()
+                        .toLocaleDateString(
+                          "en-IN",
+                          {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          }
+                        )
+                    }
                   </strong>
 
                 </div>
+
 
                 <small>
                   Date is automatically recorded.
                 </small>
 
               </div>
+
 
               {/* BUTTONS */}
 
@@ -904,23 +1211,35 @@ function Pujari() {
                 <button
                   type="button"
                   className="pujari-secondary-button"
-                  onClick={closeModal}
-                  disabled={saving}
+                  onClick={
+                    closeModal
+                  }
+                  disabled={
+                    saving
+                  }
                 >
                   Cancel
                 </button>
 
+
                 <button
                   type="submit"
                   className="pujari-primary-button"
-                  disabled={saving}
+                  disabled={
+                    saving
+                  }
                 >
-                  {saving
-                    ? "Saving..."
-                    : "Save Pujari"}
+
+                  {
+                    saving
+                      ? "Saving..."
+                      : "Save Pujari"
+                  }
+
                 </button>
 
               </div>
+
 
             </form>
 
@@ -930,15 +1249,12 @@ function Pujari() {
 
       )}
 
+
       {/* =========================================
           CSS
       ========================================== */}
 
       <style>{`
-
-        /* =========================================
-           PAGE
-        ========================================== */
 
         .pujari-page {
           width: 100%;
@@ -961,6 +1277,7 @@ function Pujari() {
           margin-bottom: 32px;
         }
 
+
         .pujari-eyebrow {
           color: #f5bd45;
           font-size: 11px;
@@ -969,12 +1286,14 @@ function Pujari() {
           margin-bottom: 9px;
         }
 
+
         .pujari-header h1 {
           margin: 0;
           color: #f6f1f8;
           font-size: 42px;
           font-weight: 800;
         }
+
 
         .pujari-header p {
           color: #8d8297;
@@ -990,20 +1309,24 @@ function Pujari() {
           border: none;
           border-radius: 11px;
           padding: 13px 20px;
+
           background: linear-gradient(
             135deg,
             #ffd76c,
             #efb43b
           );
+
           color: #241909;
           font-weight: 800;
           cursor: pointer;
           transition: 0.2s ease;
         }
 
+
         .pujari-primary-button:hover {
           transform: translateY(-2px);
         }
+
 
         .pujari-primary-button:disabled {
           opacity: 0.5;
@@ -1013,21 +1336,17 @@ function Pujari() {
 
         /* =========================================
            STATS
-           ONLY TWO CARDS
         ========================================== */
 
         .pujari-stats {
           display: grid;
-
-          /*
-            TWO CARDS
-          */
           grid-template-columns:
             repeat(2, minmax(0, 1fr));
 
           gap: 20px;
           margin-bottom: 25px;
         }
+
 
         .pujari-stat-card {
           min-height: 135px;
@@ -1047,6 +1366,7 @@ function Pujari() {
 
           border-radius: 18px;
         }
+
 
         .pujari-stat-icon {
           width: 50px;
@@ -1069,6 +1389,7 @@ function Pujari() {
           font-weight: 800;
         }
 
+
         .pujari-stat-card span {
           display: block;
           color: #8d8297;
@@ -1076,11 +1397,13 @@ function Pujari() {
           margin-bottom: 5px;
         }
 
+
         .pujari-stat-card strong {
           display: block;
           color: #f4eff8;
           font-size: 24px;
         }
+
 
         .pujari-stat-card small {
           color: #6f6577;
@@ -1099,6 +1422,7 @@ function Pujari() {
           gap: 20px;
           margin-bottom: 22px;
         }
+
 
         .pujari-search {
           width: min(600px, 100%);
@@ -1121,10 +1445,12 @@ function Pujari() {
           border-radius: 12px;
         }
 
+
         .pujari-search span {
           color: #7d7286;
           font-size: 20px;
         }
+
 
         .pujari-search input {
           width: 100%;
@@ -1134,9 +1460,11 @@ function Pujari() {
           color: #f4eff8;
         }
 
+
         .pujari-search input::placeholder {
           color: #62596a;
         }
+
 
         .pujari-count {
           color: #807589;
@@ -1159,6 +1487,7 @@ function Pujari() {
           overflow: hidden;
         }
 
+
         .pujari-records-header {
           min-height: 105px;
 
@@ -1173,11 +1502,13 @@ function Pujari() {
             rgba(255,255,255,0.07);
         }
 
+
         .pujari-records-header h2 {
           margin: 0;
           color: #f4eff8;
           font-size: 24px;
         }
+
 
         .pujari-records-header > strong {
           color: #f5bd45;
@@ -1201,6 +1532,7 @@ function Pujari() {
           flex-direction: column;
         }
 
+
         .pujari-row {
           min-height: 92px;
 
@@ -1223,9 +1555,11 @@ function Pujari() {
             rgba(255,255,255,0.055);
         }
 
+
         .pujari-row:last-child {
           border-bottom: none;
         }
+
 
         .pujari-person {
           display: flex;
@@ -1233,6 +1567,7 @@ function Pujari() {
           gap: 13px;
           min-width: 0;
         }
+
 
         .pujari-avatar {
           width: 43px;
@@ -1253,6 +1588,7 @@ function Pujari() {
           font-size: 18px;
         }
 
+
         .pujari-person strong {
           display: block;
           color: #eee9f1;
@@ -1260,10 +1596,12 @@ function Pujari() {
           margin-bottom: 4px;
         }
 
+
         .pujari-person span {
           color: #746a7d;
           font-size: 12px;
         }
+
 
         .pujari-details small,
         .pujari-amount small,
@@ -1275,20 +1613,24 @@ function Pujari() {
           margin-bottom: 5px;
         }
 
+
         .pujari-details span,
         .pujari-date span {
           color: #bcb3c3;
           font-size: 13px;
         }
 
+
         .pujari-details span {
           overflow-wrap: anywhere;
         }
+
 
         .pujari-amount strong {
           color: #f2b63e;
           font-size: 15px;
         }
+
 
         .pujari-delete {
           width: 38px;
@@ -1306,6 +1648,7 @@ function Pujari() {
           color: #dc7474;
           cursor: pointer;
         }
+
 
         .pujari-delete:hover {
           background:
@@ -1331,6 +1674,7 @@ function Pujari() {
           padding: 40px;
         }
 
+
         .pujari-empty-icon {
           width: 62px;
           height: 62px;
@@ -1351,10 +1695,12 @@ function Pujari() {
           margin-bottom: 15px;
         }
 
+
         .pujari-empty h3 {
           margin: 0;
           color: #eae4ee;
         }
+
 
         .pujari-empty p {
           color: #746a7d;
@@ -1387,6 +1733,7 @@ function Pujari() {
           overflow-y: auto;
         }
 
+
         .pujari-modal {
           width: min(680px, 100%);
 
@@ -1404,6 +1751,7 @@ function Pujari() {
           border-radius: 20px;
         }
 
+
         .pujari-modal-header {
           padding: 24px 26px;
 
@@ -1416,11 +1764,13 @@ function Pujari() {
             rgba(255,255,255,0.07);
         }
 
+
         .pujari-modal-header h2 {
           margin: 0;
           color: #f4eff8;
           font-size: 25px;
         }
+
 
         .pujari-modal-close {
           width: 38px;
@@ -1438,6 +1788,7 @@ function Pujari() {
           cursor: pointer;
         }
 
+
         .pujari-form {
           padding: 26px;
 
@@ -1449,17 +1800,20 @@ function Pujari() {
           gap: 19px;
         }
 
+
         .pujari-form-group {
           display: flex;
           flex-direction: column;
           gap: 8px;
         }
 
+
         .pujari-form-group label {
           color: #93879d;
           font-size: 13px;
           font-weight: 600;
         }
+
 
         .pujari-form-group input {
           width: 100%;
@@ -1484,14 +1838,17 @@ function Pujari() {
           font-size: 14px;
         }
 
+
         .pujari-form-group input:focus {
           border-color:
             rgba(245,189,69,0.5);
         }
 
+
         .pujari-form-group input::placeholder {
           color: #62596a;
         }
+
 
         .pujari-auto-date {
           grid-column: 1 / -1;
@@ -1514,11 +1871,13 @@ function Pujari() {
             rgba(245,189,69,0.12);
         }
 
+
         .pujari-auto-date div {
           display: flex;
           flex-direction: column;
           gap: 5px;
         }
+
 
         .pujari-auto-date span {
           color: #786d81;
@@ -1526,15 +1885,18 @@ function Pujari() {
           letter-spacing: 1.5px;
         }
 
+
         .pujari-auto-date strong {
           color: #f5bd45;
           font-size: 16px;
         }
 
+
         .pujari-auto-date small {
           color: #756a7c;
           font-size: 11px;
         }
+
 
         .pujari-modal-actions {
           grid-column: 1 / -1;
@@ -1544,6 +1906,7 @@ function Pujari() {
 
           gap: 12px;
         }
+
 
         .pujari-secondary-button {
           border:
@@ -1575,15 +1938,14 @@ function Pujari() {
             padding: 30px 24px 50px;
           }
 
-          /*
-            KEEP TWO STAT CARDS
-          */
+
           .pujari-stats {
             grid-template-columns:
               repeat(2, minmax(0, 1fr));
 
             gap: 14px;
           }
+
 
           .pujari-row {
             grid-template-columns:
@@ -1611,25 +1973,18 @@ function Pujari() {
             align-items: flex-start;
           }
 
+
           .pujari-header h1 {
             font-size: 34px;
           }
+
 
           .pujari-header p {
             font-size: 13px;
           }
 
-          .pujari-primary-button {
-            width: auto;
-          }
 
-
-          /*
-            =========================================
-            IMPORTANT:
-            TWO STAT CARDS IN ONE ROW
-            =========================================
-          */
+          /* TWO STAT CARDS */
 
           .pujari-stats {
             display: grid !important;
@@ -1643,6 +1998,7 @@ function Pujari() {
 
             margin-bottom: 18px;
           }
+
 
           .pujari-stat-card {
             width: 100% !important;
@@ -1668,6 +2024,7 @@ function Pujari() {
             box-sizing: border-box;
           }
 
+
           .pujari-stat-icon {
             width: 38px;
             height: 38px;
@@ -1677,6 +2034,7 @@ function Pujari() {
             font-size: 17px;
           }
 
+
           .pujari-stat-card span {
             font-size: 9px;
 
@@ -1685,9 +2043,11 @@ function Pujari() {
             margin-bottom: 4px;
           }
 
+
           .pujari-stat-card strong {
             font-size: 20px;
           }
+
 
           .pujari-stat-card small {
             font-size: 9px;
@@ -1703,9 +2063,11 @@ function Pujari() {
             gap: 8px;
           }
 
+
           .pujari-search {
             width: 100%;
           }
+
 
           .pujari-count {
             align-self: flex-end;
@@ -1718,9 +2080,11 @@ function Pujari() {
             padding: 20px;
           }
 
+
           .pujari-records-header h2 {
             font-size: 20px;
           }
+
 
           .pujari-records-header > strong {
             font-size: 14px;
@@ -1737,6 +2101,7 @@ function Pujari() {
             gap: 15px;
           }
 
+
           .pujari-delete {
             justify-self: end;
           }
@@ -1748,10 +2113,12 @@ function Pujari() {
             grid-template-columns: 1fr;
           }
 
+
           .pujari-auto-date,
           .pujari-modal-actions {
             grid-column: auto;
           }
+
 
           .pujari-auto-date {
             flex-direction: column;
@@ -1765,22 +2132,27 @@ function Pujari() {
             padding: 12px;
           }
 
+
           .pujari-modal {
             width: 100%;
             border-radius: 16px;
           }
 
+
           .pujari-modal-header {
             padding: 20px;
           }
+
 
           .pujari-form {
             padding: 20px;
           }
 
+
           .pujari-modal-actions {
             flex-direction: column;
           }
+
 
           .pujari-modal-actions button {
             width: 100%;
@@ -1791,7 +2163,9 @@ function Pujari() {
       `}</style>
 
     </div>
+
   );
 }
+
 
 export default Pujari;
