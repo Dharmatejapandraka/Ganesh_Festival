@@ -2,26 +2,81 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-const API_URL = "http://localhost:5000/api/auth";
+// =====================================================
+// API CONFIGURATION
+// =====================================================
+
+// Production backend
+const PRODUCTION_API_URL =
+  "https://ganesh-festival-backend-qzjm.onrender.com/api";
+
+// Read Render/Vite environment variable
+const ENV_API_URL =
+  import.meta.env.VITE_API_URL?.trim();
+
+// Prevent localhost from ever being used in production
+const API_BASE_URL =
+  import.meta.env.PROD
+    ? (
+        ENV_API_URL &&
+        !/localhost|127\.0\.0\.1/i.test(ENV_API_URL)
+          ? ENV_API_URL
+          : PRODUCTION_API_URL
+      )
+    : (
+        ENV_API_URL ||
+        "http://localhost:5000/api"
+      );
+
+// Remove trailing slash
+const CLEAN_API_BASE_URL =
+  API_BASE_URL.replace(/\/+$/, "");
+
+// Authentication API
+const API_URL =
+  `${CLEAN_API_BASE_URL}/auth`;
+
+
+// =====================================================
+// LOGIN COMPONENT
+// =====================================================
 
 function Login() {
+
   const navigate = useNavigate();
+
   const { login } = useAuth();
+
+
+  // ===================================================
+  // FORM STATE
+  // ===================================================
 
   const [form, setForm] = useState({
     mobile: "",
     password: "",
   });
 
+
+  // ===================================================
+  // UI STATE
+  // ===================================================
+
   const [loading, setLoading] = useState(false);
+
   const [error, setError] = useState("");
+
 
   // =====================================================
   // INPUT CHANGE
   // =====================================================
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+
+    const {
+      name,
+      value,
+    } = e.target;
 
     setForm((previous) => ({
       ...previous,
@@ -31,85 +86,202 @@ function Login() {
     setError("");
   };
 
+
   // =====================================================
   // LOGIN
   // =====================================================
 
   const handleSubmit = async (e) => {
+
     e.preventDefault();
 
     setError("");
+
 
     // ---------------------------------------------------
     // MOBILE VALIDATION
     // ---------------------------------------------------
 
-    if (!form.mobile.trim()) {
-      setError("Please enter your mobile number.");
+    const mobile =
+      form.mobile.trim();
+
+    if (!mobile) {
+
+      setError(
+        "Please enter your mobile number."
+      );
+
       return;
     }
 
-    if (!/^[0-9]{10}$/.test(form.mobile.trim())) {
-      setError("Please enter a valid 10-digit mobile number.");
+
+    if (!/^[0-9]{10}$/.test(mobile)) {
+
+      setError(
+        "Please enter a valid 10-digit mobile number."
+      );
+
       return;
     }
+
 
     // ---------------------------------------------------
     // PASSWORD VALIDATION
     // ---------------------------------------------------
 
     if (!form.password) {
-      setError("Please enter your password.");
+
+      setError(
+        "Please enter your password."
+      );
+
       return;
     }
 
+
     try {
+
       setLoading(true);
 
-      console.log("=================================");
-      console.log("LOGIN REQUEST");
-      console.log("MOBILE:", form.mobile.trim());
-      console.log("=================================");
 
-      const response = await fetch(`${API_URL}/login`, {
-        method: "POST",
+      // =================================================
+      // DEBUG INFORMATION
+      // =================================================
 
-        headers: {
-          "Content-Type": "application/json",
-        },
+      console.log(
+        "================================="
+      );
 
-        body: JSON.stringify({
-          mobile: form.mobile.trim(),
-          password: form.password,
-        }),
-      });
+      console.log(
+        "LOGIN REQUEST"
+      );
 
-      const data = await response.json();
+      console.log(
+        "ENVIRONMENT:",
+        import.meta.env.PROD
+          ? "PRODUCTION"
+          : "DEVELOPMENT"
+      );
 
-      console.log("LOGIN STATUS:", response.status);
-      console.log("LOGIN RESPONSE:", data);
+      console.log(
+        "API BASE URL:",
+        CLEAN_API_BASE_URL
+      );
 
-      // ---------------------------------------------------
+      console.log(
+        "LOGIN URL:",
+        `${API_URL}/login`
+      );
+
+      console.log(
+        "MOBILE:",
+        mobile
+      );
+
+      console.log(
+        "================================="
+      );
+
+
+      // =================================================
+      // LOGIN REQUEST
+      // =================================================
+
+      const response = await fetch(
+        `${API_URL}/login`,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+
+          body: JSON.stringify({
+            mobile,
+            password:
+              form.password,
+          }),
+        }
+      );
+
+
+      // =================================================
+      // RESPONSE
+      // =================================================
+
+      const contentType =
+        response.headers.get(
+          "content-type"
+        ) || "";
+
+
+      let data;
+
+
+      if (
+        contentType.includes(
+          "application/json"
+        )
+      ) {
+
+        data =
+          await response.json();
+
+      } else {
+
+        const text =
+          await response.text();
+
+        data = {
+          message: text,
+        };
+      }
+
+
+      console.log(
+        "LOGIN STATUS:",
+        response.status
+      );
+
+      console.log(
+        "LOGIN RESPONSE:",
+        data
+      );
+
+
+      // =================================================
       // BACKEND ERROR
-      // ---------------------------------------------------
+      // =================================================
 
       if (!response.ok) {
+
         throw new Error(
-          data?.message || "Login failed."
+          data?.message ||
+          `Login failed with status ${response.status}.`
         );
       }
 
-      // ---------------------------------------------------
+
+      // =================================================
+      // CHECK SUCCESS
+      // =================================================
+
+      if (!data?.success) {
+
+        throw new Error(
+          data?.message ||
+          "Login failed."
+        );
+      }
+
+
+      // =================================================
       // CHECK TOKEN
-      // ---------------------------------------------------
+      // =================================================
 
-      if (!data.success) {
-        throw new Error(
-          data?.message || "Login failed."
-        );
-      }
+      if (!data?.token) {
 
-      if (!data.token) {
         console.error(
           "LOGIN RESPONSE DOES NOT CONTAIN TOKEN:",
           data
@@ -120,50 +292,81 @@ function Login() {
         );
       }
 
-      // ---------------------------------------------------
-      // SAVE AUTH
-      // ---------------------------------------------------
 
-      console.log("TOKEN RECEIVED");
+      // =================================================
+      // SAVE AUTH
+      // =================================================
+
+      console.log(
+        "TOKEN RECEIVED"
+      );
 
       console.log(
         "USER:",
         data.user
       );
 
+
       login(
         data.token,
         data.user
       );
 
-      // ---------------------------------------------------
-      // DASHBOARD
-      // ---------------------------------------------------
 
-      navigate("/dashboard");
+      // =================================================
+      // DASHBOARD
+      // =================================================
+
+      navigate(
+        "/dashboard"
+      );
+
 
     } catch (error) {
+
       console.error(
         "LOGIN ERROR:",
         error
       );
 
-      setError(
-        error?.message ||
-        "Login failed. Please try again."
-      );
+
+      // -------------------------------------------------
+      // NETWORK / FETCH ERROR
+      // -------------------------------------------------
+
+      if (
+        error?.name ===
+        "TypeError"
+      ) {
+
+        setError(
+          "Unable to connect to the server. Please try again."
+        );
+
+      } else {
+
+        setError(
+          error?.message ||
+          "Login failed. Please try again."
+        );
+      }
+
 
     } finally {
+
       setLoading(false);
     }
   };
+
 
   // =====================================================
   // PAGE
   // =====================================================
 
   return (
+
     <div className="login-page">
+
 
       {/* =================================================
           BRAND
@@ -175,11 +378,13 @@ function Login() {
           ॐ
         </div>
 
+
         <div>
 
           <div className="login-brand-name">
             Velivolu
           </div>
+
 
           <div className="login-brand-subtitle">
             GANESH UTSAVAM
@@ -196,13 +401,16 @@ function Login() {
 
       <div className="login-card">
 
+
         <div className="login-eyebrow">
           GANESH UTSAVAM
         </div>
 
+
         <h1>
           Welcome Back
         </h1>
+
 
         <p className="login-description">
           Login to manage the festival.
@@ -214,9 +422,11 @@ function Login() {
         ================================================= */}
 
         {error && (
+
           <div className="login-error">
             {error}
           </div>
+
         )}
 
 
@@ -224,15 +434,21 @@ function Login() {
             FORM
         ================================================= */}
 
-        <form onSubmit={handleSubmit}>
+        <form
+          onSubmit={handleSubmit}
+        >
 
-          {/* MOBILE */}
+
+          {/* =================================================
+              MOBILE
+          ================================================= */}
 
           <div className="login-group">
 
             <label>
               Mobile Number
             </label>
+
 
             <input
               type="tel"
@@ -249,13 +465,16 @@ function Login() {
           </div>
 
 
-          {/* PASSWORD */}
+          {/* =================================================
+              PASSWORD
+          ================================================= */}
 
           <div className="login-group">
 
             <label>
               Password
             </label>
+
 
             <input
               type="password"
@@ -270,7 +489,9 @@ function Login() {
           </div>
 
 
-          {/* LOGIN BUTTON */}
+          {/* =================================================
+              LOGIN BUTTON
+          ================================================= */}
 
           <button
             type="submit"
@@ -297,10 +518,13 @@ function Login() {
             Don't have an account?
           </span>
 
+
           <button
             type="button"
             className="register-link"
-            onClick={() => navigate("/register")}
+            onClick={() =>
+              navigate("/register")
+            }
           >
             Register
           </button>
@@ -324,6 +548,7 @@ function Login() {
 
         </div>
 
+
       </div>
 
 
@@ -336,6 +561,7 @@ function Login() {
         * {
           box-sizing: border-box;
         }
+
 
         .login-page {
           min-height: 100vh;
@@ -365,10 +591,13 @@ function Login() {
         }
 
 
-        /* BRAND */
+        /* ================================================
+           BRAND
+        ================================================ */
 
         .login-brand {
           display: flex;
+
           align-items: center;
 
           gap: 14px;
@@ -376,11 +605,13 @@ function Login() {
           margin-bottom: 25px;
         }
 
+
         .login-brand-logo {
           width: 62px;
           height: 62px;
 
           display: flex;
+
           align-items: center;
           justify-content: center;
 
@@ -396,12 +627,14 @@ function Login() {
           color: #251a05;
 
           font-size: 30px;
+
           font-weight: 800;
 
           box-shadow:
             0 10px 35px
             rgba(245,189,69,0.18);
         }
+
 
         .login-brand-name {
           color: #f5bd45;
@@ -412,6 +645,7 @@ function Login() {
 
           font-weight: 800;
         }
+
 
         .login-brand-subtitle {
           margin-top: 6px;
@@ -426,7 +660,9 @@ function Login() {
         }
 
 
-        /* CARD */
+        /* ================================================
+           CARD
+        ================================================ */
 
         .login-card {
           width: min(430px, 100%);
@@ -488,7 +724,9 @@ function Login() {
         }
 
 
-        /* ERROR */
+        /* ================================================
+           ERROR
+        ================================================ */
 
         .login-error {
           padding: 12px 14px;
@@ -512,7 +750,9 @@ function Login() {
         }
 
 
-        /* INPUT */
+        /* ================================================
+           INPUT
+        ================================================ */
 
         .login-group {
           display: flex;
@@ -573,7 +813,9 @@ function Login() {
         }
 
 
-        /* LOGIN BUTTON */
+        /* ================================================
+           LOGIN BUTTON
+        ================================================ */
 
         .login-button {
           width: 100%;
@@ -600,6 +842,10 @@ function Login() {
           font-weight: 800;
 
           cursor: pointer;
+
+          transition:
+            transform 0.15s ease,
+            opacity 0.15s ease;
         }
 
 
@@ -613,15 +859,20 @@ function Login() {
           opacity: 0.55;
 
           cursor: not-allowed;
+
+          transform: none;
         }
 
 
-        /* REGISTER */
+        /* ================================================
+           REGISTER
+        ================================================ */
 
         .register-section {
           display: flex;
 
           justify-content: center;
+
           align-items: center;
 
           gap: 6px;
@@ -659,7 +910,9 @@ function Login() {
         }
 
 
-        /* FOOTER */
+        /* ================================================
+           FOOTER
+        ================================================ */
 
         .login-footer {
           margin-top: 25px;
@@ -674,7 +927,9 @@ function Login() {
         }
 
 
-        /* MOBILE */
+        /* ================================================
+           MOBILE
+        ================================================ */
 
         @media (max-width: 500px) {
 
@@ -683,9 +938,11 @@ function Login() {
               20px 15px;
           }
 
+
           .login-brand {
             margin-bottom: 20px;
           }
+
 
           .login-brand-logo {
             width: 54px;
@@ -694,14 +951,17 @@ function Login() {
             font-size: 26px;
           }
 
+
           .login-brand-name {
             font-size: 26px;
           }
+
 
           .login-card {
             padding:
               30px 22px;
           }
+
 
           .login-card h1 {
             font-size: 29px;
@@ -714,5 +974,6 @@ function Login() {
     </div>
   );
 }
+
 
 export default Login;
