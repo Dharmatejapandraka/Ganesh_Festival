@@ -7,39 +7,21 @@ dotenv.config();
 
 const connectDB = require("./config/db");
 
-const donationRoutes =
-  require("./routes/donationRoutes");
+// =====================================================
+// ROUTES
+// =====================================================
 
-const expenseRoutes =
-  require("./routes/expenseRoutes");
-
-const djSetRoutes =
-  require("./routes/djSetRoutes");
-
-const pujariRoutes =
-  require("./routes/pujariRoutes");
-
-const ganeshIdolRoutes =
-  require("./routes/ganeshIdolRoutes");
-
-const photoRoutes =
-  require("./routes/photoRoutes");
-
-const nimarganamRoutes =
-  require("./routes/nimarganamRoutes");
-
-const committeeRoutes =
-  require("./routes/committeeRoutes");
-
-const villagerRoutes =
-  require("./routes/villagerRoutes");
-
-const authRoutes =
-  require("./routes/authRoutes");
-
-const userRoutes =
-  require("./routes/userRoutes");
-
+const donationRoutes = require("./routes/donationRoutes");
+const expenseRoutes = require("./routes/expenseRoutes");
+const djSetRoutes = require("./routes/djSetRoutes");
+const pujariRoutes = require("./routes/pujariRoutes");
+const ganeshIdolRoutes = require("./routes/ganeshIdolRoutes");
+const photoRoutes = require("./routes/photoRoutes");
+const nimarganamRoutes = require("./routes/nimarganamRoutes");
+const committeeRoutes = require("./routes/committeeRoutes");
+const villagerRoutes = require("./routes/villagerRoutes");
+const authRoutes = require("./routes/authRoutes");
+const userRoutes = require("./routes/userRoutes");
 
 // =====================================================
 // DATABASE
@@ -47,13 +29,11 @@ const userRoutes =
 
 connectDB();
 
-
 // =====================================================
 // APP
 // =====================================================
 
 const app = express();
-
 
 // =====================================================
 // CORS
@@ -67,9 +47,8 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-
-      // Allow requests without an Origin
-      // such as Postman or server-to-server requests
+      // Allow requests without Origin
+      // Example: Postman / server-to-server
       if (!origin) {
         return callback(null, true);
       }
@@ -78,10 +57,7 @@ app.use(
         return callback(null, true);
       }
 
-      console.log(
-        "CORS blocked origin:",
-        origin
-      );
+      console.log("CORS blocked origin:", origin);
 
       return callback(
         new Error("Not allowed by CORS")
@@ -92,21 +68,17 @@ app.use(
   })
 );
 
-
 // =====================================================
 // BODY PARSER
 // =====================================================
 
-app.use(
-  express.json()
-);
+app.use(express.json());
 
 app.use(
   express.urlencoded({
     extended: true,
   })
 );
-
 
 // =====================================================
 // UPLOADS
@@ -115,28 +87,20 @@ app.use(
 app.use(
   "/uploads",
   express.static(
-    path.join(
-      __dirname,
-      "uploads"
-    )
+    path.join(__dirname, "uploads")
   )
 );
 
-
 // =====================================================
-// TEST
+// TEST ROUTE
 // =====================================================
 
 app.get("/", (req, res) => {
-
-  res.json({
+  res.status(200).json({
     success: true,
-    message:
-      "Ganesh Festival API is running",
+    message: "Ganesh Festival API is running",
   });
-
 });
-
 
 // =====================================================
 // AUTH
@@ -147,7 +111,6 @@ app.use(
   authRoutes
 );
 
-
 // =====================================================
 // USERS / ADMIN
 // =====================================================
@@ -156,7 +119,6 @@ app.use(
   "/api/users",
   userRoutes
 );
-
 
 // =====================================================
 // DONATIONS
@@ -167,7 +129,6 @@ app.use(
   donationRoutes
 );
 
-
 // =====================================================
 // EXPENSES
 // =====================================================
@@ -177,7 +138,6 @@ app.use(
   expenseRoutes
 );
 
-
 // =====================================================
 // DJ SETS
 // =====================================================
@@ -186,7 +146,6 @@ app.use(
   "/api/dj-sets",
   djSetRoutes
 );
-
 
 // =====================================================
 // PUJARI
@@ -202,7 +161,6 @@ app.use(
   pujariRoutes
 );
 
-
 // =====================================================
 // GANESH IDOLS
 // =====================================================
@@ -217,7 +175,6 @@ app.use(
   ganeshIdolRoutes
 );
 
-
 // =====================================================
 // PHOTOS
 // =====================================================
@@ -226,7 +183,6 @@ app.use(
   "/api/photos",
   photoRoutes
 );
-
 
 // =====================================================
 // NIMARGANAM
@@ -237,7 +193,6 @@ app.use(
   nimarganamRoutes
 );
 
-
 // =====================================================
 // COMMITTEE
 // =====================================================
@@ -246,7 +201,6 @@ app.use(
   "/api/committee",
   committeeRoutes
 );
-
 
 // =====================================================
 // VILLAGERS
@@ -257,29 +211,22 @@ app.use(
   villagerRoutes
 );
 
-
 // =====================================================
 // 404
 // =====================================================
 
-app.use(
-  (req, res) => {
+app.use((req, res) => {
+  console.log(
+    "404 API:",
+    req.method,
+    req.originalUrl
+  );
 
-    console.log(
-      "404 API:",
-      req.method,
-      req.originalUrl
-    );
-
-    res.status(404).json({
-      success: false,
-      message:
-        `API route not found: ${req.method} ${req.originalUrl}`,
-    });
-
-  }
-);
-
+  res.status(404).json({
+    success: false,
+    message: `API route not found: ${req.method} ${req.originalUrl}`,
+  });
+});
 
 // =====================================================
 // ERROR HANDLER
@@ -292,7 +239,6 @@ app.use(
     res,
     next
   ) => {
-
     console.error(
       "SERVER ERROR:",
       err
@@ -304,10 +250,8 @@ app.use(
         err.message ||
         "Internal server error",
     });
-
   }
 );
-
 
 // =====================================================
 // SERVER
@@ -320,10 +264,8 @@ app.listen(
   PORT,
   "0.0.0.0",
   () => {
-
     console.log(
       `Server running on port ${PORT}`
     );
-
   }
 );
