@@ -6,12 +6,16 @@
 // =====================================================
 // API BASE URL
 // =====================================================
-
+//
 // Local development:
 // http://localhost:5000/api
-
+//
 // Production:
 // https://ganesh-festival-backend-qzjm.onrender.com/api
+//
+// If VITE_API_URL exists, it will be used.
+// Otherwise production backend will be used.
+// =====================================================
 
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
@@ -47,7 +51,11 @@ export const getCurrentUser = () => {
 
     return JSON.parse(savedUser);
   } catch (error) {
-    console.error("GET CURRENT USER ERROR:", error);
+    console.error(
+      "GET CURRENT USER ERROR:",
+      error
+    );
+
     return null;
   }
 };
@@ -73,6 +81,7 @@ export const clearAuth = () => {
   localStorage.removeItem("token");
   localStorage.removeItem("authToken");
   localStorage.removeItem("accessToken");
+
   localStorage.removeItem("festivalUser");
   localStorage.removeItem("user");
 };
@@ -88,7 +97,10 @@ const cleanEndpoint = (endpoint) => {
 
   let path = String(endpoint).trim();
 
+  // ---------------------------------------------------
   // If complete URL was supplied
+  // ---------------------------------------------------
+
   if (
     path.startsWith("http://") ||
     path.startsWith("https://")
@@ -96,10 +108,16 @@ const cleanEndpoint = (endpoint) => {
     return path;
   }
 
+  // ---------------------------------------------------
   // Remove leading slashes
+  // ---------------------------------------------------
+
   path = path.replace(/^\/+/, "");
 
+  // ---------------------------------------------------
   // Prevent /api/api/...
+  // ---------------------------------------------------
+
   if (path.startsWith("api/")) {
     path = path.substring(4);
   }
@@ -115,7 +133,12 @@ export const apiFetch = async (
   endpoint,
   options = {}
 ) => {
-  const cleanedPath = cleanEndpoint(endpoint);
+  const cleanedPath =
+    cleanEndpoint(endpoint);
+
+  // ---------------------------------------------------
+  // Build URL
+  // ---------------------------------------------------
 
   const url =
     cleanedPath.startsWith("http://") ||
@@ -123,42 +146,81 @@ export const apiFetch = async (
       ? cleanedPath
       : `${API_BASE_URL}${cleanedPath}`;
 
+  // ---------------------------------------------------
+  // GET TOKEN
+  // ---------------------------------------------------
+
   const token = getToken();
+
+  // ---------------------------------------------------
+  // HEADERS
+  // ---------------------------------------------------
 
   const headers = {
     ...(options.headers || {}),
   };
 
-  // ===================================================
+  // ---------------------------------------------------
   // JSON CONTENT TYPE
-  // ===================================================
+  // ---------------------------------------------------
 
   if (
     options.body !== undefined &&
     options.body !== null &&
     !(options.body instanceof FormData)
   ) {
-    headers["Content-Type"] = "application/json";
+    headers["Content-Type"] =
+      "application/json";
   }
 
-  // ===================================================
+  // ---------------------------------------------------
   // AUTHORIZATION
-  // ===================================================
+  // ---------------------------------------------------
 
   if (token) {
-    headers.Authorization = `Bearer ${token}`;
+    headers.Authorization =
+      `Bearer ${token}`;
   }
+
+  // ---------------------------------------------------
+  // REQUEST OPTIONS
+  // ---------------------------------------------------
 
   const requestOptions = {
     ...options,
     headers,
   };
 
-  console.log("=================================");
-  console.log("API REQUEST:", options.method || "GET");
-  console.log("API URL:", url);
-  console.log("TOKEN:", token ? "FOUND" : "NOT FOUND");
-  console.log("=================================");
+  // ---------------------------------------------------
+  // DEBUG LOG
+  // ---------------------------------------------------
+
+  console.log(
+    "================================="
+  );
+
+  console.log(
+    "API REQUEST:",
+    options.method || "GET"
+  );
+
+  console.log(
+    "API URL:",
+    url
+  );
+
+  console.log(
+    "TOKEN:",
+    token ? "FOUND" : "NOT FOUND"
+  );
+
+  console.log(
+    "================================="
+  );
+
+  // ---------------------------------------------------
+  // FETCH
+  // ---------------------------------------------------
 
   try {
     const response = await fetch(
@@ -166,7 +228,12 @@ export const apiFetch = async (
       requestOptions
     );
 
-    const text = await response.text();
+    // -------------------------------------------------
+    // READ RESPONSE
+    // -------------------------------------------------
+
+    const text =
+      await response.text();
 
     let data = null;
 
@@ -180,6 +247,10 @@ export const apiFetch = async (
       }
     }
 
+    // -------------------------------------------------
+    // RESPONSE LOG
+    // -------------------------------------------------
+
     console.log(
       "API STATUS:",
       response.status
@@ -191,7 +262,7 @@ export const apiFetch = async (
     );
 
     // =================================================
-    // 401
+    // 401 - UNAUTHORIZED
     // =================================================
 
     if (response.status === 401) {
@@ -204,7 +275,7 @@ export const apiFetch = async (
     }
 
     // =================================================
-    // 403
+    // 403 - FORBIDDEN
     // =================================================
 
     if (response.status === 403) {
@@ -215,7 +286,7 @@ export const apiFetch = async (
     }
 
     // =================================================
-    // 404
+    // 404 - NOT FOUND
     // =================================================
 
     if (response.status === 404) {
@@ -239,11 +310,10 @@ export const apiFetch = async (
     }
 
     // =================================================
-    // RETURN BACKEND RESPONSE
+    // SUCCESS
     // =================================================
 
     return data;
-
   } catch (error) {
     console.error(
       "API FETCH ERROR:",
@@ -291,7 +361,8 @@ export const post = async (
     body !== null &&
     body !== undefined
   ) {
-    options.body = JSON.stringify(body);
+    options.body =
+      JSON.stringify(body);
   }
 
   return apiFetch(
@@ -320,7 +391,8 @@ export const put = async (
     body !== null &&
     body !== undefined
   ) {
-    options.body = JSON.stringify(body);
+    options.body =
+      JSON.stringify(body);
   }
 
   return apiFetch(
@@ -349,7 +421,8 @@ export const patch = async (
     body !== null &&
     body !== undefined
   ) {
-    options.body = JSON.stringify(body);
+    options.body =
+      JSON.stringify(body);
   }
 
   return apiFetch(
@@ -385,10 +458,12 @@ const api = {
   put,
   patch,
   delete: del,
+
   getToken,
   getCurrentUser,
   getUserRole,
   clearAuth,
+
   apiFetch,
 };
 
